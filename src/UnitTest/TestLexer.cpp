@@ -27,7 +27,7 @@ struct LexerTester
     void LastToken(const string & file, size_t line);
     void begin_check_error(size_t count, const string & file, size_t line);
     void error(CompileErrorType errorType, size_t row, size_t column, const string & value,
-        const string & file, size_t line);
+        const string & file, size_t line, CodeTokenType type = CodeTokenType::UnKnown);
     void end_check_error(const string & file, size_t line);
 };
 
@@ -71,13 +71,13 @@ void LexerTester::begin_check_error(size_t count, const string & file, size_t li
     errorIterator = codeFile->errors.begin();
 }
 void LexerTester::error(CompileErrorType errorType, size_t row, size_t column, const string & value,
-    const string & file, size_t line)
+    const string & file, size_t line, CodeTokenType type)
 {
     test_assert(errorIterator->errorType == errorType, file, line);
     test_assert(errorIterator->token->row == row, file, line);
     test_assert(errorIterator->token->column == column, file, line);
     test_assert(errorIterator->token->value == value, file, line);
-    test_assert(errorIterator->token->type == CodeTokenType::UnKnown, file, line);
+    test_assert(errorIterator->token->type == type, file, line);
     ++errorIterator;
 }
 void LexerTester::end_check_error(const string & file, size_t line)
@@ -85,15 +85,16 @@ void LexerTester::end_check_error(const string & file, size_t line)
     test_assert(errorIterator == codeFile->errors.end(), file, line);
 }
 
-#define FIRST_LINE(code, COUNT)                             LexerTester tester(code); tester.FirstLine(COUNT, __FILE__, __LINE__);
-#define NEXT_LINE                                           tester.NextLine(__FILE__, __LINE__);
-#define LAST_LINE                                           tester.LastLine(__FILE__, __LINE__);
-#define FIRST_TOKEN(COUNT)                                  tester.FirstToken(COUNT, __FILE__, __LINE__);
-#define TOKEN(ROW, COLUMN, VALUE, TYPE)                     tester.Token(ROW, COLUMN, VALUE, TYPE, __FILE__, __LINE__);
-#define LAST_TOKEN                                          tester.LastToken(__FILE__, __LINE__);
-#define BEGIN_CHECK_ERROR(COUNT)                            tester.begin_check_error(COUNT, __FILE__, __LINE__);
-#define CHECK_ERROR(ERRORTYPE, ROW, COLUMN, VALUE)          tester.error(ERRORTYPE, ROW, COLUMN, VALUE, __FILE__, __LINE__);
-#define END_CHECK_ERROR                                     tester.end_check_error(__FILE__, __LINE__);
+#define FIRST_LINE(code, COUNT)                                       LexerTester tester(code); tester.FirstLine(COUNT, __FILE__, __LINE__);
+#define NEXT_LINE                                                     tester.NextLine(__FILE__, __LINE__);
+#define LAST_LINE                                                     tester.LastLine(__FILE__, __LINE__);
+#define FIRST_TOKEN(COUNT)                                            tester.FirstToken(COUNT, __FILE__, __LINE__);
+#define TOKEN(ROW, COLUMN, VALUE, TYPE)                               tester.Token(ROW, COLUMN, VALUE, TYPE, __FILE__, __LINE__);
+#define LAST_TOKEN                                                    tester.LastToken(__FILE__, __LINE__);
+#define BEGIN_CHECK_ERROR(COUNT)                                      tester.begin_check_error(COUNT, __FILE__, __LINE__);
+#define CHECK_ERROR(ERRORTYPE, ROW, COLUMN, VALUE)                    tester.error(ERRORTYPE, ROW, COLUMN, VALUE, __FILE__, __LINE__);
+#define CHECK_ERROR_WITH_TYPE(ERRORTYPE, ROW, COLUMN, VALUE, TYPE)    tester.error(ERRORTYPE, ROW, COLUMN, VALUE, __FILE__, __LINE__, TYPE);
+#define END_CHECK_ERROR                                               tester.end_check_error(__FILE__, __LINE__);
 
 void testEmptyFile()
 {
@@ -321,6 +322,66 @@ void testFloat()
     }
 }
 
+void testString()
+{
+    string code = 
+        "\"unix end\"\n"
+        "\"windows end\"\r\n"
+        "\"\"\n"
+        "\"two\"\"string\"\n"
+        "\"\\a\\b\\f\\r\\t\\v\\\\ \\' \\\" \"\n"
+        "\"unfinished line\n"
+        // "\"unfinished escape\\\"\n"  Should not be this.
+        // There is a contradiction here. If we support check for "abcd\", we can't support "ab\"cd"
+        "\"unfinished escape \\j end\"\n"
+        "\"last line\""
+        ;
+    FIRST_LINE(code, 7);
+    FIRST_TOKEN(1);
+    TOKEN(1, 1, "unix end", CodeTokenType::String);
+    LAST_TOKEN;
+
+    NEXT_LINE;
+    FIRST_TOKEN(1);
+    TOKEN(2, 1, "windows end", CodeTokenType::String);
+    LAST_TOKEN;
+
+    NEXT_LINE;
+    FIRST_TOKEN(1);
+    TOKEN(3, 1, "", CodeTokenType::String);
+    LAST_TOKEN;
+
+    NEXT_LINE;
+    FIRST_TOKEN(2);
+    TOKEN(4, 1, "two", CodeTokenType::String);
+    TOKEN(4, 6, "string", CodeTokenType::String);
+    LAST_TOKEN;
+
+    NEXT_LINE;
+    FIRST_TOKEN(1);
+    TOKEN(5, 1, "\a\b\f\r\t\v\\ ' \" ", CodeTokenType::String);
+    LAST_TOKEN;
+
+    NEXT_LINE;
+    FIRST_TOKEN(1);
+    TOKEN(7, 1, "unfinished escape \\j end", CodeTokenType::String);
+    LAST_TOKEN;
+
+    NEXT_LINE;
+    FIRST_TOKEN(1);
+    TOKEN(8, 1, "last line", CodeTokenType::String);
+    LAST_TOKEN;
+
+    NEXT_LINE;
+    LAST_LINE;
+
+    BEGIN_CHECK_ERROR(2);
+    CHECK_ERROR(CompileErrorType::Lexer_InCompleteString, 6, 1, "\"unfinished line");
+    CHECK_ERROR_WITH_TYPE(CompileErrorType::Lexer_InvalidEscapeChar, 7, 1,
+        "unfinished escape \\j end", CodeTokenType::String);
+    END_CHECK_ERROR;
+}
+
 struct InvokeLexerTest
 {
     InvokeLexerTest()
@@ -333,6 +394,7 @@ struct InvokeLexerTest
         testMultipleLine();
         testError();
         testFloat();
+        testString();
         std::cout << "Lexer Test Complete" << std::endl;
     }
 } invokeTest;

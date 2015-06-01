@@ -95,6 +95,7 @@ namespace minimoe
         CompileError::List errors;
 
         static Ptr Parse(const std::string & codeString);
+        bool UnEscapeString(const std::string & s, CodeToken::Ptr & token);
     };
 
 }

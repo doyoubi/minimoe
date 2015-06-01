@@ -1,3 +1,5 @@
+#include <sstream>
+
 #include "Compiler/Lexer/Lexer.h"
 
 namespace minimoe
@@ -13,6 +15,8 @@ namespace minimoe
             Begin,
             InInteger,
             InFloat,
+            InString,
+            InStringEscaping,
         };
 
         size_t row = 1;
@@ -27,6 +31,17 @@ namespace minimoe
             auto token = std::make_shared<CodeToken>(
                 row, distance(rowBegin, tokenHead) + 1, value, type
                 );
+            if (type == CodeTokenType::Identifier)
+            {
+                // not implemented
+            }
+            else if (type == CodeTokenType::String)
+            {
+                bool success = codeFile->UnEscapeString(value, token);
+                if (!success)
+                    ; // treat it as an valid string, but without escape, raise an error and go on.
+            }
+
             if (codeFile->lines.empty() || row > codeFile->lines.back()->tokens.back()->row)
                 codeFile->lines.push_back(std::make_shared<CodeLine>());
             codeFile->lines.back()->tokens.push_back(token);
@@ -56,6 +71,8 @@ namespace minimoe
                     rowBegin = std::next(charIt);
                     break;
                 case '\0':
+                case '\t':
+                case '\r':
                 case ' ':
                     break;
                 case '+':
@@ -63,6 +80,10 @@ namespace minimoe
                     break;
                 case '*':
                     addToken(string(1, c), CodeTokenType::Mul);
+                    break;
+                case '"':
+                    state = State::InString;
+                    head = charIt;
                     break;
                 default:
                     if ('0' <= c && c <= '9')
@@ -77,6 +98,38 @@ namespace minimoe
                     }
                     break;
                 }
+                break;
+            case State::InString:
+                if (c == '\n')
+                {
+                    addError(CompileErrorType::Lexer_InCompleteString, string(head, charIt),
+                        "incomplete string, multiple line string is not allowed");
+                    head = headUnusedTag;
+                    state = State::Begin;
+                    --charIt; // let the next loop handle the row change
+                }
+                else if (c == '\\')
+                {
+                    state = State::InStringEscaping;
+                }
+                else if (c == '"')
+                {
+                    addToken(string(std::next(head), charIt), CodeTokenType::String);
+                    head = headUnusedTag;
+                    state = State::Begin;
+                }
+                else {} // go on
+                break;
+            case State::InStringEscaping:
+                if (c == '\n')
+                {
+                    addError(CompileErrorType::Lexer_InCompleteString, string(head, charIt),
+                        "incomplete string, multiple line string is not allowed");
+                    head = headUnusedTag;
+                    state = State::Begin;
+                    --charIt; // let the next loop handle the row change
+                }
+                else state = State::InString; // not handle escape char here, just let it there
                 break;
             case State::InInteger:
                 if ('0' <= c && c <= '9')
@@ -129,4 +182,60 @@ namespace minimoe
 
         return codeFile;
     }
+
+    bool CodeFile::UnEscapeString(const string & s, CodeToken::Ptr & token)
+    {
+        std::stringstream ss;
+        bool escaping = false;
+        for (size_t i = 0; i <= s.size(); i++)
+        {
+            char c = i == s.size() ? '\0' : s[i];
+            if (escaping)
+            {
+                if (c == 'a')
+                    ss << '\a';
+                else if (c == 'b')
+                    ss << '\b';
+                else if (c == 'f')
+                    ss << '\f';
+                else if (c == 'n')
+                    ss << '\n';
+                else if (c == 'r')
+                    ss << '\r';
+                else if (c == 't')
+                    ss << '\t';
+                else if (c == 'v')
+                    ss << '\v';
+                else if (c == '\\')
+                    ss << '\\';
+                else if (c == '\'')
+                    ss << '\'';
+                else if (c == '"')
+                    ss << '\"';
+                else if (c == '0')
+                    ss << '\0';
+                else
+                {
+                    CompileError error = {
+                        CompileErrorType::Lexer_InvalidEscapeChar,
+                        token,
+                        "invalid escape char found in string literal"
+                    };
+                    errors.push_back(error);
+                    return false;
+                }
+                escaping = false;
+            }
+            else
+            {
+                if (c == '\\')
+                    escaping = true;
+                else if (i != s.size())
+                    ss << c;
+            }
+        }
+        token->value = ss.str();
+        return true;
+    }
+
 }

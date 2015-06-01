@@ -11,6 +11,8 @@ namespace minimoe
     {
         Lexer_UnexpectedChar,
         Lexer_InvalidFloat,
+        Lexer_InCompleteString,
+        Lexer_InvalidEscapeChar,
     };
 
 }
