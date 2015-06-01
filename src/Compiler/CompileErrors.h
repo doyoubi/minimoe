@@ -10,6 +10,7 @@ namespace minimoe
     enum class CompileErrorType
     {
         Lexer_UnexpectedChar,
+        Lexer_InvalidFloat,
     };
 
 }

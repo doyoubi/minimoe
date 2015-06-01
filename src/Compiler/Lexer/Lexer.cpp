@@ -11,7 +11,8 @@ namespace minimoe
         enum class State
         {
             Begin,
-            InNumber,
+            InInteger,
+            InFloat,
         };
 
         size_t row = 1;
@@ -67,7 +68,7 @@ namespace minimoe
                     if ('0' <= c && c <= '9')
                     {
                         head = charIt;
-                        state = State::InNumber;
+                        state = State::InInteger;
                     }
                     else
                     {
@@ -77,7 +78,37 @@ namespace minimoe
                     break;
                 }
                 break;
-            case State::InNumber:
+            case State::InInteger:
+                if ('0' <= c && c <= '9')
+                {
+                    // go on
+                }
+                else if (c == '.')
+                {
+                    char nextChar = std::next(charIt) == codeString.end() ? '\0' : *std::next(charIt);
+                    if ('0' <= nextChar && nextChar <= '9')
+                        state = State::InFloat;
+                    else
+                    {
+                        // ignore this '.' and treat this token as Float, but raise error
+                        addToken(string(head, charIt), CodeTokenType::Float);
+                        addError(CompileErrorType::Lexer_InvalidFloat, string(head, std::next(charIt)),
+                            "'.' should be followed by digit");
+                        state = State::Begin;
+                        head = headUnusedTag;
+                    }
+                }
+                else
+                {
+                    --charIt;
+                    // decrease because the current char is not belong to this token
+                    // and charIt will increase at the end of loop
+                    addToken(string(head, std::next(charIt)), CodeTokenType::Integer);
+                    state = State::Begin;
+                    head = headUnusedTag;
+                }
+                break;
+            case State::InFloat:
                 if ('0' <= c && c <= '9')
                 {
                     // go on
@@ -85,11 +116,12 @@ namespace minimoe
                 else
                 {
                     --charIt;
-                    addToken(string(head, std::next(charIt)), CodeTokenType::Integer);
+                    // decrease because the current char is not belong to this token
+                    // and charIt will increase at the end of loop
+                    addToken(string(head, std::next(charIt)), CodeTokenType::Float);
                     state = State::Begin;
-                    head = std::end(codeString);
+                    head = headUnusedTag;
                 }
-                break;
             } // end of switch
             if (charIt == std::end(codeString)) break;
             ++charIt;

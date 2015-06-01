@@ -289,6 +289,38 @@ void testError()
     END_CHECK_ERROR;
 }
 
+void testFloat()
+{
+    {
+        string code = "2.333 0.0";
+        FIRST_LINE(code, 1);
+        FIRST_TOKEN(2);
+        TOKEN(1, 1, "2.333", CodeTokenType::Float);
+        TOKEN(1, 7, "0.0", CodeTokenType::Float);
+        LAST_TOKEN;
+
+        NEXT_LINE;
+        LAST_LINE;
+
+        BEGIN_CHECK_ERROR(0);
+        END_CHECK_ERROR;
+    }
+    {
+        string code = "12.";
+        FIRST_LINE(code, 1);
+        FIRST_TOKEN(1);
+        TOKEN(1, 1, "12", CodeTokenType::Float);
+        LAST_TOKEN;
+
+        NEXT_LINE;
+        LAST_LINE;
+
+        BEGIN_CHECK_ERROR(1);
+        CHECK_ERROR(CompileErrorType::Lexer_InvalidFloat, 1, 1, "12.");
+        END_CHECK_ERROR;
+    }
+}
+
 struct InvokeLexerTest
 {
     InvokeLexerTest()
@@ -300,6 +332,7 @@ struct InvokeLexerTest
         testBlank();
         testMultipleLine();
         testError();
+        testFloat();
         std::cout << "Lexer Test Complete" << std::endl;
     }
 } invokeTest;
