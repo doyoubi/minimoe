@@ -425,6 +425,35 @@ void testIdentifier()
     LAST_TOKEN;
     NEXT_LINE;
     LAST_LINE;
+
+    BEGIN_CHECK_ERROR(0);
+    END_CHECK_ERROR;
+}
+
+void testComment()
+{
+    string code =
+        "--comment1 \n"
+        "-- comment2\n"
+        "identifier --comment3\n"
+        "- -NotComment";
+    FIRST_LINE(code, 2);
+    FIRST_TOKEN(1);
+    TOKEN(3, 1, "identifier", CodeTokenType::Identifier);
+    LAST_TOKEN;
+    NEXT_LINE;
+
+    FIRST_TOKEN(3);
+    TOKEN(4, 1, "-", CodeTokenType::Sub);
+    TOKEN(4, 3, "-", CodeTokenType::Sub);
+    TOKEN(4, 4, "NotComment", CodeTokenType::Identifier);
+    LAST_TOKEN;
+
+    NEXT_LINE;
+    LAST_LINE;
+
+    BEGIN_CHECK_ERROR(0);
+    END_CHECK_ERROR;
 }
 
 struct InvokeLexerTest
@@ -441,6 +470,7 @@ struct InvokeLexerTest
         testFloat();
         testString();
         testIdentifier();
+        testComment();
         std::cout << "Lexer Test Complete" << std::endl;
     }
 } invokeTest;

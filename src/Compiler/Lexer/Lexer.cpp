@@ -18,6 +18,8 @@ namespace minimoe
             InString,
             InStringEscaping,
             InIdentifier,
+            InComment,
+            InPreComment,
         };
 
         size_t row = 1;
@@ -104,6 +106,9 @@ namespace minimoe
                     state = State::InString;
                     head = charIt;
                     break;
+                case '-':
+                    state = State::InPreComment;
+                    break;
                 default:
                     if ('0' <= c && c <= '9')
                     {
@@ -121,6 +126,24 @@ namespace minimoe
                         // ignore this char and go on from State::Begin
                     }
                     break;
+                }
+                break;
+            case State::InPreComment:
+                if (c == '-')
+                    state = State::InComment;
+                else
+                {
+                    --charIt;
+                    addToken("-", CodeTokenType::Sub);
+                    head = headUnusedTag;
+                    state = State::Begin;
+                }
+                break;
+            case State::InComment:
+                if (c == '\n')
+                {
+                    state = State::Begin;
+                    --charIt;
                 }
                 break;
             case State::InIdentifier:
