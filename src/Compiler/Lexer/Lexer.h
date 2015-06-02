@@ -44,8 +44,10 @@ namespace minimoe
         GT,           // >
         LE,           // <=
         GE,	          // >=
-        EQ,           // =
+        EQ,           // ==
         NE,           // <>
+        Assign,       // =
+        GetMember,    // .
         And,          // and
         Or,           // or
         Not,          // not

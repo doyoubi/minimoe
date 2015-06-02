@@ -82,11 +82,77 @@ namespace minimoe
         while (true)
         {
             char c = charIt == std::end(codeString) ? '\0' : *charIt;
+            char nextChar = '\0';
             switch (state)
             {
             case State::Begin:
                 switch (c)
                 {
+                case '(':
+                    addToken("(", CodeTokenType::OpenBracket);
+                    break;
+                case ')':
+                    addToken(")", CodeTokenType::CloseBracket);
+                    break;
+                case ',':
+                    addToken(",", CodeTokenType::Comma);
+                    break;
+                case ':':
+                    addToken(":", CodeTokenType::Colon);
+                    break;
+                case '+':
+                    addToken("+", CodeTokenType::Add);
+                    break;
+                case '-':
+                    state = State::InPreComment;
+                    break;
+                case '*':
+                    addToken("*", CodeTokenType::Mul);
+                    break;
+                case '/':
+                    addToken("/", CodeTokenType::Div);
+                    break;
+                case '%':
+                    addToken("%", CodeTokenType::Mod);
+                    break;
+                case '<':
+                    nextChar = std::next(charIt) != codeString.end() ?  *std::next(charIt) : '\0';
+                    if (nextChar == '=')
+                    {
+                        addToken("<=", CodeTokenType::LE);
+                        ++charIt;
+                    }
+                    else if (nextChar == '>')
+                    {
+                        addToken("<>", CodeTokenType::NE);
+                        ++charIt;
+                    }
+                    else
+                        addToken("<", CodeTokenType::LT);
+                    break;
+                case '>':
+                    nextChar = std::next(charIt) != codeString.end() ? *std::next(charIt) : '\0';
+                    if (nextChar == '=')
+                    {
+                        addToken(">=", CodeTokenType::GE);
+                        ++charIt;
+                    }
+                    else
+                        addToken(">", CodeTokenType::GT);
+                    break;
+                case '=':
+                    nextChar = std::next(charIt) != codeString.end() ? *std::next(charIt) : '\0';
+                    if (nextChar == '=')
+                    {
+                        addToken("==", CodeTokenType::EQ);
+                        ++charIt;
+                    }
+                    else
+                        addToken("=", CodeTokenType::Assign);
+                    break;
+                case '.':
+                    addToken(".", CodeTokenType::GetMember);
+                    break;
                 case '\n':
                     row++;
                     rowBegin = std::next(charIt);
@@ -96,18 +162,9 @@ namespace minimoe
                 case '\r':
                 case ' ':
                     break;
-                case '+':
-                    addToken(string(1, c), CodeTokenType::Add);
-                    break;
-                case '*':
-                    addToken(string(1, c), CodeTokenType::Mul);
-                    break;
                 case '"':
                     state = State::InString;
                     head = charIt;
-                    break;
-                case '-':
-                    state = State::InPreComment;
                     break;
                 default:
                     if ('0' <= c && c <= '9')

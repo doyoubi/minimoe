@@ -456,6 +456,45 @@ void testComment()
     END_CHECK_ERROR;
 }
 
+void testOperator()
+{
+    string code = 
+        "(),:+-*/%><<=>===<>.--\n"
+        "===>";
+    FIRST_LINE(code, 2);
+    FIRST_TOKEN(16);
+    TOKEN(1, 1, "(", CodeTokenType::OpenBracket);
+    TOKEN(1, 2, ")", CodeTokenType::CloseBracket);
+    TOKEN(1, 3, ",", CodeTokenType::Comma);
+    TOKEN(1, 4, ":", CodeTokenType::Colon);
+    TOKEN(1, 5, "+", CodeTokenType::Add);
+    TOKEN(1, 6, "-", CodeTokenType::Sub);
+    TOKEN(1, 7, "*", CodeTokenType::Mul);
+    TOKEN(1, 8, "/", CodeTokenType::Div);
+    TOKEN(1, 9, "%", CodeTokenType::Mod);
+    TOKEN(1, 10, ">", CodeTokenType::GT);
+    TOKEN(1, 11, "<", CodeTokenType::LT);
+    TOKEN(1, 12, "<=", CodeTokenType::LE);
+    TOKEN(1, 14, ">=", CodeTokenType::GE);
+    TOKEN(1, 16, "==", CodeTokenType::EQ);
+    TOKEN(1, 18, "<>", CodeTokenType::NE);
+    TOKEN(1, 20, ".", CodeTokenType::GetMember);
+    LAST_TOKEN;
+    NEXT_LINE;
+
+    FIRST_TOKEN(3);
+    TOKEN(2, 1, "==", CodeTokenType::EQ);
+    TOKEN(2, 3, "=", CodeTokenType::Assign);
+    TOKEN(2, 4, ">", CodeTokenType::GT);
+    LAST_TOKEN;
+
+    NEXT_LINE;
+    LAST_LINE;
+
+    BEGIN_CHECK_ERROR(0);
+    END_CHECK_ERROR;
+}
+
 struct InvokeLexerTest
 {
     InvokeLexerTest()
@@ -471,6 +510,7 @@ struct InvokeLexerTest
         testString();
         testIdentifier();
         testComment();
+        testOperator();
         std::cout << "Lexer Test Complete" << std::endl;
     }
 } invokeTest;
