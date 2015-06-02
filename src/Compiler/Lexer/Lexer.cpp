@@ -17,6 +17,7 @@ namespace minimoe
             InFloat,
             InString,
             InStringEscaping,
+            InIdentifier,
         };
 
         size_t row = 1;
@@ -33,13 +34,31 @@ namespace minimoe
                 );
             if (type == CodeTokenType::Identifier)
             {
-                // not implemented
+                token->type =
+                    value == "module" ? CodeTokenType::Module :
+                    value == "using" ? CodeTokenType::Using :
+                    value == "phrase" ? CodeTokenType::Phrase :
+                    value == "sentence" ? CodeTokenType::Sentence :
+                    value == "block" ? CodeTokenType::Block :
+                    value == "type" ? CodeTokenType::Type :
+                    value == "cps" ? CodeTokenType::CPS :
+                    value == "category" ? CodeTokenType::Category :
+                    value == "deferred" ? CodeTokenType::Deferred :
+                    value == "argument" ? CodeTokenType::Argument :
+                    value == "assignable" ? CodeTokenType::Assignable :
+                    value == "list" ? CodeTokenType::List :
+                    value == "end" ? CodeTokenType::End :
+                    value == "and" ? CodeTokenType::And :
+                    value == "or" ? CodeTokenType::Or :
+                    value == "not" ? CodeTokenType::Not :
+                    CodeTokenType::Identifier;
             }
             else if (type == CodeTokenType::String)
             {
                 bool success = codeFile->UnEscapeString(value, token);
                 if (!success)
-                    ; // treat it as an valid string, but without escape, raise an error and go on.
+                {
+                } // treat it as an valid string, but without escape, raise an error and go on.
             }
 
             if (codeFile->lines.empty() || row > codeFile->lines.back()->tokens.back()->row)
@@ -91,12 +110,30 @@ namespace minimoe
                         head = charIt;
                         state = State::InInteger;
                     }
+                    else if ('a' <= c && c <= 'z' || 'A' <= c && c <= 'Z' || c == '_')
+                    {
+                        head = charIt;
+                        state = State::InIdentifier;
+                    }
                     else
                     {
                         addError(CompileErrorType::Lexer_UnexpectedChar, string(1, c), "illegal char found: '" + string(1, c) + "'");
                         // ignore this char and go on from State::Begin
                     }
                     break;
+                }
+                break;
+            case State::InIdentifier:
+                if ('a' <= c && c <= 'z' || 'A' <= c && c <= 'Z' || c == '_')
+                {
+                    // go on
+                }
+                else
+                {
+                    addToken(string(head, charIt), CodeTokenType::Identifier);
+                    head = headUnusedTag;
+                    state = State::Begin;
+                    --charIt;
                 }
                 break;
             case State::InString:

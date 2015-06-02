@@ -24,7 +24,7 @@ namespace minimoe
 
         CPS,
         Category,
-        Expression,
+        Deferred,
         Argument,
         Assignable,
         List,
