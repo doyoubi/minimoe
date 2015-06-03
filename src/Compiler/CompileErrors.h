@@ -13,6 +13,9 @@ namespace minimoe
         Lexer_InvalidFloat,
         Lexer_InCompleteString,
         Lexer_InvalidEscapeChar,
+
+        Parser_NoMoreToken,
+        Parser_CloseBracketNotFound,
     };
 
 }

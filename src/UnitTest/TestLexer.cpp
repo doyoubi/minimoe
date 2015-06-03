@@ -495,22 +495,19 @@ void testOperator()
     END_CHECK_ERROR;
 }
 
-struct InvokeLexerTest
+void InvokeLexerTest()
 {
-    InvokeLexerTest()
-    {
-        testEmptyFile();
-        testPrimitiveToken();
-        testLongToken();
-        testCodeFileStructure();
-        testBlank();
-        testMultipleLine();
-        testError();
-        testFloat();
-        testString();
-        testIdentifier();
-        testComment();
-        testOperator();
-        std::cout << "Lexer Test Complete" << std::endl;
-    }
-} invokeTest;
+    testEmptyFile();
+    testPrimitiveToken();
+    testLongToken();
+    testCodeFileStructure();
+    testBlank();
+    testMultipleLine();
+    testError();
+    testFloat();
+    testString();
+    testIdentifier();
+    testComment();
+    testOperator();
+    std::cout << "Lexer Test Complete" << std::endl;
+}

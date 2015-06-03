@@ -52,7 +52,6 @@ namespace minimoe
         Or,           // or
         Not,          // not
 
-        Comment,
         UnKnown,
     };
 
