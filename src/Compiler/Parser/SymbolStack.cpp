@@ -1,5 +1,3 @@
-#include <algorithm>
-
 #include "ExpressionParser.h"
 
 namespace minimoe
@@ -18,10 +16,12 @@ namespace minimoe
 
         while (true)
         {
-            auto index = std::find_if(tokenTypes, tokenTypes + count,
-                [this, head, tail](CodeTokenType type){
-                return this->ParseSingleToken(TokenIter(head), tail, type); // will not modify head 
-            });
+            auto index = tokenTypes;
+            for (; index < tokenTypes + count; index++)
+            {
+                if (ParseSingleToken(TokenIter(head), tail, *index))
+                    break;
+            }
             if (index == tokenTypes + count)
                 return exp;
 
@@ -97,6 +97,7 @@ namespace minimoe
                     token->type == CodeTokenType::String ? LiteralType::String : 
                     LiteralType::UnKnown;
                 literalExp->value = token->value;
+                ++head;
                 return literalExp;
             }
         case CodeTokenType::Add:

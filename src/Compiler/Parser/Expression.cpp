@@ -12,12 +12,29 @@ namespace minimoe
 
     string BinaryExpression::ToLog()
     {
-        return "not implemented";
+        string s;
+        s +=
+            binaryOperator == BinaryOperator::Add ? "+(" :
+            binaryOperator == BinaryOperator::Sub ? "-(" :
+            binaryOperator == BinaryOperator::Mul ? "*(" :
+            binaryOperator == BinaryOperator::Div ? "/(" :
+            binaryOperator == BinaryOperator::Mod ? "%(" :
+            binaryOperator == BinaryOperator::LT ? "<(" :
+            binaryOperator == BinaryOperator::GT ? ">(" :
+            binaryOperator == BinaryOperator::LE ? "<=(" :
+            binaryOperator == BinaryOperator::GE ? ">=(" :
+            binaryOperator == BinaryOperator::EQ ? "==(" :
+            binaryOperator == BinaryOperator::NE ? "<>(" :
+            binaryOperator == BinaryOperator::And ? "and(" :
+            binaryOperator == BinaryOperator::Or ? "or(" :
+            "(unknown operator)";
+        s += leftOperand->ToLog() + ", " + rightOperand->ToLog() + ")";
+        return s;
     }
 
     string LiteralExpression::ToLog()
     {
-        return "not implemented";
+        return value;
     }
 
     string VariableExpression::ToLog()
