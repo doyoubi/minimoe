@@ -5,9 +5,18 @@ namespace minimoe
 {
     using std::string;
 
+    string ErrorTag = "$(ErrorTag)";
+
     string UnaryExpression::ToLog()
     {
-        return "not implemented";
+        string s;
+        s +=
+            unaryOperator == UnaryOperator::Negative ? "-" :
+            unaryOperator == UnaryOperator::Not ? "not" :
+            unaryOperator == UnaryOperator::Positive ? "+" :
+            ErrorTag;
+        s += "(" + operand->ToLog() + ")";
+        return s;
     }
 
     string BinaryExpression::ToLog()
@@ -27,7 +36,7 @@ namespace minimoe
             binaryOperator == BinaryOperator::NE ? "<>(" :
             binaryOperator == BinaryOperator::And ? "and(" :
             binaryOperator == BinaryOperator::Or ? "or(" :
-            "(unknown operator)";
+            ErrorTag;
         s += leftOperand->ToLog() + ", " + rightOperand->ToLog() + ")";
         return s;
     }

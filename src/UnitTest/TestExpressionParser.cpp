@@ -20,7 +20,6 @@ void TestParsePrimitive()
 {
     CodeToken::List tokens;
     SymbolStack stack;
-
     // Integer
     {
         Tokenize("233", tokens);
@@ -33,7 +32,6 @@ void TestParsePrimitive()
         TEST_ASSERT(literal->type == LiteralType::Integer);
         TEST_ASSERT(literal->value == "233");
     }
-
     // Float
     {
         Tokenize("2.333", tokens);
@@ -46,7 +44,6 @@ void TestParsePrimitive()
         TEST_ASSERT(literal->type == LiteralType::Float);
         TEST_ASSERT(literal->value == "2.333");
     }
-
     // String
     {
         Tokenize("\"this is a string\"", tokens);
@@ -59,13 +56,24 @@ void TestParsePrimitive()
         TEST_ASSERT(literal->type == LiteralType::String);
         TEST_ASSERT(literal->value == "this is a string");
     }
+    // bracket
+    {
+        Tokenize("(1)", tokens);
+        CompileError::List errors;
+        auto exp = stack.ParseExpression(tokens.begin(), tokens.end(), errors);
+        TEST_ASSERT(exp != nullptr);
+        TEST_ASSERT(errors.empty());
+
+        auto literal = std::dynamic_pointer_cast<LiteralExpression>(exp);
+        TEST_ASSERT(literal->type == LiteralType::Integer);
+        TEST_ASSERT(literal->value == "1");
+    }
 }
 
 void TestBinaryExpression()
 {
     CodeToken::List tokens;
     SymbolStack stack;
-
     {
         Tokenize("1 and 2", tokens);
         CompileError::List errors;
@@ -90,9 +98,40 @@ void TestBinaryExpression()
     }
 }
 
+void TestUnaryExpression()
+{
+    CodeToken::List tokens;
+    SymbolStack stack;
+    {
+        Tokenize("not 1", tokens);
+        CompileError::List errors;
+        auto exp = stack.ParseExpression(tokens.begin(), tokens.end(), errors);
+        TEST_ASSERT(exp != nullptr);
+        TEST_ASSERT(errors.empty());
+
+        auto uexp = std::dynamic_pointer_cast<UnaryExpression>(exp);
+        TEST_ASSERT(uexp != nullptr);
+        TEST_ASSERT(uexp->ToLog() == "not(1)");
+    }
+    {
+        Tokenize("1 and + 2", tokens);
+        CompileError::List errors;
+        auto exp = stack.ParseExpression(tokens.begin(), tokens.end(), errors);
+        TEST_ASSERT(exp != nullptr);
+        TEST_ASSERT(errors.empty());
+
+        auto bi = std::dynamic_pointer_cast<BinaryExpression>(exp);
+        TEST_ASSERT(bi != nullptr);
+        auto u = std::dynamic_pointer_cast<UnaryExpression>(bi->rightOperand);
+        TEST_ASSERT(u != nullptr);
+        TEST_ASSERT(bi->ToLog() == "and(1, +(2))");
+    }
+}
+
 void InvokeExpressionParserTest()
 {
     TestParsePrimitive();
     TestBinaryExpression();
+    TestUnaryExpression();
     std::cout << "Expresion Parser Test Complete" << std::endl;
 }
