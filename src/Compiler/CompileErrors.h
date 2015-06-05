@@ -16,6 +16,7 @@ namespace minimoe
 
         Parser_NoMoreToken,
         Parser_CloseBracketNotFound,
+        Parser_CanNotResolveSymbol,
     };
 
 }

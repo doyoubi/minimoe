@@ -1,5 +1,6 @@
 #include <string>
 #include "ExpressionParser.h"
+#include "Utils/Debug.h"
 
 namespace minimoe
 {
@@ -41,19 +42,68 @@ namespace minimoe
         return s;
     }
 
+    std::string TypeToString(Type type)
+    {
+        DEBUGCHECK(type != Type::UserDefined);
+        return
+            type == Type::Array ? "Array" :
+            type == Type::Boolean ? "Boolean" :
+            type == Type::Float ? "Float" :
+            type == Type::Function ? "Function" :
+            type == Type::Integer ? "Integer" :
+            type == Type::NullType ? "Null" :
+            type == Type::String ? "String" :
+            type == Type::UserDefined ? "Object" :
+            type == Type::Tag ? "Tag" :
+            "UnKnown";
+    }
+
+    std::string KeywordToString(Keyword keyword)
+    {
+        return
+            keyword == Keyword::Continuation ? "continuation" :
+            keyword == Keyword::Else ? "else" :
+            keyword == Keyword::End ? "end" :
+            keyword == Keyword::False ? "false" :
+            keyword == Keyword::FunctioinResult ? "result" :
+            keyword == Keyword::GetItem ? "[]" :
+            keyword == Keyword::If ? "if" :
+            keyword == Keyword::Null ? "null" :
+            keyword == Keyword::RedirectTo ? "RedirectTo" :
+            keyword == Keyword::Size ? "size" :
+            keyword == Keyword::True ? "true" :
+            keyword == Keyword::Var ? "var" :
+            "UnKnown";
+    }
+
     string LiteralExpression::ToLog()
     {
         return value;
     }
 
-    string VariableExpression::ToLog()
+    string SymbolExpression::ToLog()
     {
-        return "not implemented";
-    }
-
-    string TagExpression::ToLog()
-    {
-        return "not implemented";
+        string s;
+        if (symbol->symbolType == SymbolType::Type)
+        {
+            if (symbol->builtInType == Type::UserDefined)
+                s += symbol->typeDeclaration->name;
+            else s += TypeToString(symbol->builtInType);
+        }
+        else if (symbol->symbolType == SymbolType::Variable)
+        {
+            s = "(" + symbol->name + ":";
+            if (symbol->varDeclaration->type == Type::UserDefined)
+                s += symbol->varDeclaration->userDefinedType->name;
+            else s += TypeToString(symbol->varDeclaration->type);
+            s += ")";
+        }
+        else if (symbol->symbolType == SymbolType::Keyword)
+        {
+            s = KeywordToString(symbol->keyword);
+        }
+        else ERRORMSG("invalid SymbolType");
+        return s;
     }
 
     string FunctionInvokeExpression::ToLog()

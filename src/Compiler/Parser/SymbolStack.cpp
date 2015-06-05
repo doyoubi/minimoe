@@ -1,7 +1,29 @@
 #include "ExpressionParser.h"
+#include "Utils/Debug.h"
 
 namespace minimoe
 {
+    /**************************************
+    Symbol
+    *************************************/
+    Symbol::Symbol(Type langBuiltInType, const std::string & symbolName)
+        : name(symbolName), symbolType(SymbolType::Type), builtInType(langBuiltInType)
+    {}
+    Symbol::Symbol(TypeDeclaration::Ptr userDefinedType, const std::string & symbolName)
+        : name(symbolName), symbolType(SymbolType::Type), builtInType(Type::UserDefined), typeDeclaration(userDefinedType)
+    {}
+    Symbol::Symbol(Keyword builtInKeyword, Type langBuiltInType, const std::string & symbolName)
+        : name(symbolName), symbolType(SymbolType::Keyword), keyword(builtInKeyword)
+    {}
+    Symbol::Symbol(VariableDeclaration::Ptr variable, const std::string & symbolName)
+        : name(symbolName), symbolType(SymbolType::Variable), varDeclaration(variable)
+    {}
+
+
+    /****************************
+    parse function
+    *******************************/
+
     Expression::Ptr SymbolStack::ParseExpression(
         TokenIter & head, TokenIter tail, CompileError::List & errors)
     {
@@ -128,6 +150,11 @@ namespace minimoe
                 });
                 return nullptr;
             }
+        case CodeTokenType::Identifier:
+            {
+                // only support SymbolExpression now
+                return ParseSymbol(head, tail, errors);
+            }
         }
     }
 
@@ -142,5 +169,75 @@ namespace minimoe
         }
         return false;
     }
+
+    Expression::Ptr SymbolStack::ParseSymbol(TokenIter & head, TokenIter tail, CompileError::List & errors)
+    {
+        // should only called by ParsePrimitive
+        DEBUGCHECK(head != tail); // already checked in ParsePrimitive
+        auto symbol = ResolveSymbol((*head)->value);
+        if (symbol == nullptr)
+        {
+            errors.push_back({
+                CompileErrorType::Parser_CanNotResolveSymbol,
+                *head,
+                "can't resolve symbol: " + (*head)->value
+            });
+            return nullptr;
+        }
+        auto varExp = std::make_shared<SymbolExpression>();
+        varExp->symbol = symbol;
+        return varExp;
+    }
+
+    /*********************
+    SymbolStackItem
+    ********************/
+    void SymbolStackItem::LoadPredefinedSymbol()
+    {
+        // built in types
+        addSymbol(Type::Array, "Array");
+        addSymbol(Type::Boolean, "Boolean");
+        addSymbol(Type::Float, "Float");
+        addSymbol(Type::Function, "Function");
+        addSymbol(Type::Integer, "Integer");
+        addSymbol(Type::NullType, "Null");
+        addSymbol(Type::String, "String");
+        addSymbol(Type::Tag, "Tag");
+
+        // built in values
+        addSymbol(Keyword::Null, Type::NullType, "null");
+        addSymbol(Keyword::True, Type::Boolean, "true");
+        addSymbol(Keyword::False, Type::Boolean, "false");
+    }
+
+    /******************
+    SymbolStack operation
+    *****************/
+    void SymbolStack::Push(SymbolStackItem::Ptr item)
+    {
+        stackItems.push_back(item);
+    }
+
+    void SymbolStack::Pop()
+    {
+        stackItems.pop_back();
+    }
+
+    SymbolStackItem::Ptr SymbolStack::Top()
+    {
+        return stackItems.back();
+    }
+
+    Symbol::Ptr SymbolStack::ResolveSymbol(std::string name)
+    {
+        for (auto it = stackItems.rbegin(); it != stackItems.rend(); ++it)
+        {
+            for (auto & symbol : (*it)->symbolTables)
+                if (symbol->name == name)
+                    return symbol;
+        }
+        return nullptr;
+    }
+
 }
 

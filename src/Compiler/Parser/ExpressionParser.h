@@ -7,9 +7,44 @@
 
 #include "Compiler/Lexer/Lexer.h"
 #include "DeclarationParser.h"
+#include "Keyword.h"
 
 namespace minimoe
 {
+    /***********************
+    Symbol
+    *********************/
+    enum class SymbolType
+    {
+        Type,
+        Keyword,
+        Variable,
+
+        Unknown,
+    };
+
+    class Symbol
+    {
+    public:
+        typedef std::shared_ptr<Symbol> Ptr;
+        typedef std::vector<Ptr> List;
+
+        SymbolType symbolType;
+        // symbol value
+        Type builtInType = Type::Unknown;     // only used when SymbolType == SymbolType::Type
+        TypeDeclaration::Ptr typeDeclaration; // only used when builtInType == Type::UserDefined
+        Keyword keyword = Keyword::Unknown;   // only used when SymbolType == SymbolType::Keyword
+        VariableDeclaration::Ptr varDeclaration; // only used when SymbolType == SymbolType::Variable
+
+        std::string name;
+
+        Symbol(Type langBuiltInType, const std::string & symbolName);
+        Symbol(TypeDeclaration::Ptr userDefinedType, const std::string & symbolName);
+        Symbol(Keyword builtInKeyword, Type langBuiltInType, const std::string & symbolName);
+        Symbol(VariableDeclaration::Ptr variable, const std::string & symbolName);
+    };
+
+
     /****************************
     Expressioin
     ****************************/
@@ -87,19 +122,11 @@ namespace minimoe
         virtual std::string ToLog();
     };
 
-    class VariableExpression : public Expression
+    // reference for types, built in values, variables
+    class SymbolExpression : public Expression
     {
     public:
-        VariableDeclaration varDeclaration;
-
-        virtual std::string ToLog();
-    };
-
-    // reference a tag
-    class TagExpression : public Expression
-    {
-    public:
-        TagDeclaration::Ptr tag;
+        Symbol::Ptr symbol;  // we can find declaration here
 
         virtual std::string ToLog();
     };
@@ -127,30 +154,23 @@ namespace minimoe
     SymbolStack
     ****************************/
 
-    enum class SymbolType
-    {
-        Tag,
-        Variable,
-        FunctionAlias,
-    };
-
-    enum class SymbolValueType
-    {};
-
-    class Symbol
-    {
-    public:
-        SymbolType type;
-        SymbolValueType valueType;
-        std::string name;
-    };
-
     class SymbolStackItem
     {
-    private:
+    public:
+        typedef std::shared_ptr<SymbolStackItem> Ptr;
+        typedef std::vector<Ptr> List;
 
-        std::vector<FunctionDeclaration> functionTables;
-        std::vector<Symbol> symbolTables;
+        FunctionDeclaration::List functionTables;
+        Symbol::List symbolTables;
+
+        void LoadPredefinedSymbol();
+
+        template<class... Params>
+        void addSymbol(Params &&... params)
+        {
+            auto symbol = std::make_shared<Symbol>(std::forward<Params>(params)...);
+            symbolTables.push_back(symbol);
+        }
     };
 
     class SymbolStack
@@ -159,7 +179,12 @@ namespace minimoe
         typedef CodeToken::List::iterator TokenIter;
         typedef Expression::Ptr(SymbolStack::* ParseFunctionType)(TokenIter&, TokenIter, CompileError::List&);
 
-        std::vector<SymbolStackItem> stackItems;
+        SymbolStackItem::List stackItems;
+        
+        void Push(SymbolStackItem::Ptr item);
+        void Pop();
+        SymbolStackItem::Ptr Top();
+        Symbol::Ptr ResolveSymbol(std::string name);
 
         Expression::Ptr ParseExpression(TokenIter & head, TokenIter tail, CompileError::List & errors);
         Expression::Ptr ParseBinary(TokenIter & head, TokenIter tail, ParseFunctionType innerParser,
@@ -168,6 +193,9 @@ namespace minimoe
         Expression::Ptr ParseAnd(TokenIter & head, TokenIter tail, CompileError::List & errors);
         Expression::Ptr ParsePrimitive(TokenIter & head, TokenIter tail, CompileError::List & errors);
         bool ParseSingleToken(TokenIter & token, TokenIter tail, CodeTokenType type);
+
+        // include types, built in values, variables
+        Expression::Ptr ParseSymbol(TokenIter & head, TokenIter tail, CompileError::List & errors);
     };
 
 

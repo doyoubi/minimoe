@@ -4,20 +4,26 @@
 #include <memory>
 #include <vector>
 
+#include "Keyword.h"
+
 namespace minimoe
 {
     class Declaration
     {};
+
+    class TypeDeclaration
+    {
+    public:
+        typedef std::shared_ptr<TypeDeclaration> Ptr;
+
+        std::string name;
+    };
 
     class TagDeclaration : public Declaration
     {
     public:
         typedef std::shared_ptr<TagDeclaration> Ptr;
 
-        TagDeclaration(std::string tagName)
-            : name(tagName)
-        {}
-        const std::string name;
     };
 
     enum class FunctionFragmentType
@@ -64,18 +70,27 @@ namespace minimoe
     {
     public:
         typedef std::shared_ptr<FunctionDeclaration> Ptr;
+        typedef std::vector<Ptr> List;
 
         FunctionFragment::List fragments;
         FunctionDeclarationType type;
         ArgumentDeclaration::List arguments;
     };
 
-    enum class VariableType
+    enum class Type
     {
+        UserDefined,
+
+        Array,
+        Boolean,
         Integer,
         Float,
         String,
-        FunctionAlias,
+        Function,
+        NullType,
+        Tag,
+
+        Unknown,
     };
 
     class VariableDeclaration : Declaration
@@ -83,8 +98,11 @@ namespace minimoe
     public:
         typedef std::shared_ptr<VariableDeclaration> Ptr;
 
-        std::string name;
-        VariableType type;
+        Type type;
+        TypeDeclaration::Ptr userDefinedType;  // used when type == Type::UserDefined
+
+        std::string strValue;
+        Keyword builtInValue; // true, false, null
     };
 
 }

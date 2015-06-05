@@ -128,10 +128,86 @@ void TestUnaryExpression()
     }
 }
 
+void TestVariable()
+{
+    CodeToken::List tokens;
+    SymbolStack stack;
+    auto item = std::make_shared<SymbolStackItem>();
+    item->LoadPredefinedSymbol();
+    stack.Push(item);
+
+    auto addVariable = [&stack](Type type, std::string name){
+        auto variableItem = std::make_shared<SymbolStackItem>();
+        auto declaration = std::make_shared<VariableDeclaration>();
+        declaration->type = type;
+        variableItem->addSymbol(declaration, name);
+        stack.Push(variableItem);
+    };
+
+    {
+        addVariable(Type::String, "doyoubi");
+        Tokenize("doyoubi", tokens);
+        CompileError::List errors;
+        auto exp = stack.ParseSymbol(tokens.begin(), tokens.end(), errors);
+        TEST_ASSERT(exp != nullptr);
+        TEST_ASSERT(errors.empty());
+
+        auto sexp = std::dynamic_pointer_cast<SymbolExpression>(exp);
+        TEST_ASSERT(sexp != nullptr);
+        TEST_ASSERT(sexp->ToLog() == "(doyoubi:String)");
+        TEST_ASSERT(sexp->symbol == stack.Top()->symbolTables.back());
+    }
+}
+
+void TestBuiltInValue()
+{
+    CodeToken::List tokens;
+    SymbolStack stack;
+    auto item = std::make_shared<SymbolStackItem>();
+    item->LoadPredefinedSymbol();
+    stack.Push(item);
+
+    {
+        Tokenize("null", tokens);
+        CompileError::List errors;
+        auto exp = stack.ParseSymbol(tokens.begin(), tokens.end(), errors);
+        TEST_ASSERT(exp != nullptr);
+        TEST_ASSERT(errors.empty());
+
+        auto vexp = std::dynamic_pointer_cast<SymbolExpression>(exp);
+        TEST_ASSERT(vexp != nullptr);
+        TEST_ASSERT(vexp->ToLog() == "null");
+    }
+    {
+        Tokenize("true", tokens);
+        CompileError::List errors;
+        auto exp = stack.ParseSymbol(tokens.begin(), tokens.end(), errors);
+        TEST_ASSERT(exp != nullptr);
+        TEST_ASSERT(errors.empty());
+
+        auto vexp = std::dynamic_pointer_cast<SymbolExpression>(exp);
+        TEST_ASSERT(vexp != nullptr);
+        TEST_ASSERT(vexp->ToLog() == "true");
+    }
+    {
+        Tokenize("false", tokens);
+        CompileError::List errors;
+        auto exp = stack.ParseSymbol(tokens.begin(), tokens.end(), errors);
+        TEST_ASSERT(exp != nullptr);
+        TEST_ASSERT(errors.empty());
+
+        auto vexp = std::dynamic_pointer_cast<SymbolExpression>(exp);
+        TEST_ASSERT(vexp != nullptr);
+        TEST_ASSERT(vexp->ToLog() == "false");
+    }
+}
+
 void InvokeExpressionParserTest()
 {
     TestParsePrimitive();
     TestBinaryExpression();
     TestUnaryExpression();
+    TestVariable();
+    TestBuiltInValue();
     std::cout << "Expresion Parser Test Complete" << std::endl;
 }
