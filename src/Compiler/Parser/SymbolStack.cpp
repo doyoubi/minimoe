@@ -41,7 +41,7 @@ namespace minimoe
             auto index = tokenTypes;
             for (; index < tokenTypes + count; index++)
             {
-                if (ParseSingleToken(TokenIter(head), tail, *index))
+                if (CheckSingleTokenType(TokenIter(head), tail, *index))
                     break;
             }
             if (index == tokenTypes + count)
@@ -92,18 +92,13 @@ namespace minimoe
 
     Expression::Ptr SymbolStack::ParsePrimitive(TokenIter & head, TokenIter tail, CompileError::List & errors)
     {
-        if (head == tail)
-        {
-            // here we assume that no empty CodeLine exist, so prev(head) will not crash
-            auto token = *std::prev(head);
-            errors.push_back({
-                CompileErrorType::Parser_NoMoreToken,
-                token,
-                //*std::prev(tokenIter),  // should not do this! It will crash as a result of compiler's bug
-                "expect token but no more token found"
-            });
+        if (CheckReachTheEnd(head, tail, errors))
             return nullptr;
-        }
+
+        CompileError::List funcErrors;
+        auto funcExp = ParseInvokeFunction(head, tail, funcErrors);
+        if (funcExp != nullptr)
+            return funcExp;
 
         auto token = *head;
         switch (token->type)
@@ -141,7 +136,7 @@ namespace minimoe
             {
                 auto exp = ParsePrimitive(++head, tail, errors);
                 if (exp == nullptr) return nullptr;
-                if (ParseSingleToken(head, tail, CodeTokenType::CloseBracket))
+                if (CheckSingleTokenType(head, tail, CodeTokenType::CloseBracket))
                     return exp;
                 errors.push_back({
                     CompileErrorType::Parser_CloseBracketNotFound,
@@ -152,13 +147,17 @@ namespace minimoe
             }
         case CodeTokenType::Identifier:
             {
-                // only support SymbolExpression now
                 return ParseSymbol(head, tail, errors);
             }
         }
+
+        for (auto & error : funcErrors)
+            errors.push_back(error);
+
+        return nullptr;
     }
 
-    bool SymbolStack::ParseSingleToken(TokenIter & token, TokenIter tail, CodeTokenType type)
+    bool SymbolStack::CheckSingleTokenType(TokenIter & token, TokenIter tail, CodeTokenType type)
     {
         if (token == tail)
             return false;
@@ -170,23 +169,144 @@ namespace minimoe
         return false;
     }
 
+    bool SymbolStack::CheckSingleTokenType(TokenIter & token, TokenIter tail,
+        CodeTokenType type, CompileError::List & errors)
+    {
+        DEBUGCHECK(token != tail);
+        if ((*token)->type == type)
+        {
+            ++token;
+            return true;
+        }
+        errors.push_back({
+            CompileErrorType::Parser_UnExpectedTokenType,
+            *token,
+            "expect token type " + TokenTypeToString(type) + " but got " + TokenTypeToString((*token)->type)
+        });
+        return false;
+    }
+
+    bool SymbolStack::CheckReachTheEnd(TokenIter head, TokenIter tail, CompileError::List & errors)
+    {
+        if (head != tail)
+            return false;
+        // here we assume that no empty CodeLine exist, so prev(head) will not crash
+        auto token = *std::prev(head);
+        errors.push_back({
+            CompileErrorType::Parser_NoMoreToken,
+            token,
+            //*std::prev(tokenIter),  // should not do this! It will crash as a result of compiler's bug
+            "expect token but no more token found"
+        });
+        return true;
+    }
+
     Expression::Ptr SymbolStack::ParseSymbol(TokenIter & head, TokenIter tail, CompileError::List & errors)
     {
         // should only called by ParsePrimitive
         DEBUGCHECK(head != tail); // already checked in ParsePrimitive
-        auto symbol = ResolveSymbol((*head)->value);
+        auto token = *head;
+        if (token->type != CodeTokenType::Identifier)
+        {
+        }
+        auto symbol = ResolveSymbol(token->value);
         if (symbol == nullptr)
         {
             errors.push_back({
                 CompileErrorType::Parser_CanNotResolveSymbol,
                 *head,
-                "can't resolve symbol: " + (*head)->value
+                "can't resolve symbol: " + token->value
             });
             return nullptr;
         }
+        ++head;
         auto varExp = std::make_shared<SymbolExpression>();
         varExp->symbol = symbol;
         return varExp;
+    }
+
+    Expression::Ptr SymbolStack::ParseInvokeFunction(TokenIter & head, TokenIter tail, CompileError::List & errors)
+    {
+        // should only called by ParsePrimitive
+        DEBUGCHECK(head != tail); // already checked in ParsePrimitive
+        CompileError::List currErrors;
+        for (auto itemIter = stackItems.rbegin(); itemIter != stackItems.rend(); ++itemIter)
+        {
+            auto item = *itemIter;
+            for (auto & func : item->functionTables)
+            {
+                auto funcExp = ParseOneFunction(head, tail, func, currErrors);
+                if (funcExp != nullptr)
+                    return funcExp;
+            }
+        }
+        for (auto & error : currErrors)
+            errors.push_back(error);
+        return nullptr;
+    }
+
+    Expression::Ptr SymbolStack::ParseOneFunction(TokenIter & head, TokenIter tail,
+        FunctionDeclaration::Ptr function, CompileError::List & errors)
+    {
+        if (CheckReachTheEnd(head, tail, errors))
+            return nullptr;
+        Expression::List arguments;
+        for (auto & fragment : function->fragments)
+        {
+            if (fragment->type == FunctionFragmentType::Name)
+            {
+                if (!CheckFunctionNameFragment(head, tail, fragment->name, errors))
+                    return nullptr;
+            }
+            else if (fragment->type == FunctionFragmentType::Argument)
+            {
+                auto argument = ParseFunctionArgumentFragment(head, tail, errors);
+                if (argument == nullptr)
+                    return nullptr;
+                arguments.push_back(argument);
+            }
+            else ERRORMSG("invalid FunctionFragmentType");
+        }
+        auto functionExp = std::make_shared<FunctionInvokeExpression>();
+        functionExp->arguments = arguments;
+        functionExp->function = function;
+        return functionExp;
+    }
+
+    Expression::Ptr SymbolStack::ParseFunctionArgumentFragment(
+        TokenIter & head, TokenIter tail, CompileError::List & errors)
+    {
+        if (CheckReachTheEnd(head, tail, errors))
+            return nullptr;
+        if (!CheckSingleTokenType(head, tail, CodeTokenType::OpenBracket, errors))
+            return nullptr;
+        auto argument = ParseExpression(head, tail, errors);
+        if (argument == nullptr)
+            return nullptr;
+        if (!CheckSingleTokenType(head, tail, CodeTokenType::CloseBracket, errors))
+            return nullptr;
+        return argument;
+    }
+
+    bool SymbolStack::CheckFunctionNameFragment(TokenIter & head, TokenIter tail,
+        const std::string & name, CompileError::List & errors)
+    {
+        if (CheckReachTheEnd(head, tail, errors))
+            return nullptr;
+        if (!CheckSingleTokenType(TokenIter(head)/* just check */, tail, CodeTokenType::Identifier, errors))
+            return nullptr;
+        auto token = *head;
+        if (token->value == name)
+        {
+            ++head;
+            return true;
+        }
+        errors.push_back({
+            CompileErrorType::Parser_WrongFunctionName,
+            token,
+            "expect function name fragment \"" + name + "\" but get\"" + token->value + "\""
+        });
+        return false;
     }
 
     /*********************

@@ -192,10 +192,18 @@ namespace minimoe
         Expression::Ptr ParseOr(TokenIter & head, TokenIter tail, CompileError::List & errors);
         Expression::Ptr ParseAnd(TokenIter & head, TokenIter tail, CompileError::List & errors);
         Expression::Ptr ParsePrimitive(TokenIter & head, TokenIter tail, CompileError::List & errors);
-        bool ParseSingleToken(TokenIter & token, TokenIter tail, CodeTokenType type);
+        bool CheckSingleTokenType(TokenIter & token, TokenIter tail, CodeTokenType type);
+        bool CheckSingleTokenType(TokenIter & token, TokenIter tail, CodeTokenType type, CompileError::List & errors);
+        bool CheckReachTheEnd(TokenIter head, TokenIter tail, CompileError::List & errors);
 
         // include types, built in values, variables
         Expression::Ptr ParseSymbol(TokenIter & head, TokenIter tail, CompileError::List & errors);
+        Expression::Ptr ParseInvokeFunction(TokenIter & head, TokenIter tail, CompileError::List & errors);
+        Expression::Ptr ParseOneFunction(TokenIter & head, TokenIter tail,
+            FunctionDeclaration::Ptr function, CompileError::List & errors);
+        Expression::Ptr ParseFunctionArgumentFragment(TokenIter & head, TokenIter tail, CompileError::List & errors);
+        bool CheckFunctionNameFragment(TokenIter & head, TokenIter tail,
+            const std::string & name, CompileError::List & errors);
     };
 
 

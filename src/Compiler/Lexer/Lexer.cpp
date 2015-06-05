@@ -6,6 +6,51 @@ namespace minimoe
 {
     using std::string;
 
+    std::string TokenTypeToString(CodeTokenType type)
+    {
+        return
+            type == CodeTokenType::Add ? "+" :
+            type == CodeTokenType::And ? "and" :
+            type == CodeTokenType::Argument ? "argument" :
+            type == CodeTokenType::Assign ? "=" :
+            type == CodeTokenType::Assignable ? "assignable" :
+            type == CodeTokenType::Block ? "block" :
+            type == CodeTokenType::Category ? "category" :
+            type == CodeTokenType::CloseBracket ? ")" :
+            type == CodeTokenType::CloseSquareBracket ? "]" :
+            type == CodeTokenType::Colon ? ":" :
+            type == CodeTokenType::Comma ? "," :
+            type == CodeTokenType::CPS ? "cps" :
+            type == CodeTokenType::Deferred ? "deferred" :
+            type == CodeTokenType::Div ? "/" :
+            type == CodeTokenType::End ? "end" :
+            type == CodeTokenType::EQ ? "==" :
+            type == CodeTokenType::Float ? "Float" :
+            type == CodeTokenType::GE ? ">=" :
+            type == CodeTokenType::GetMember ? "." :
+            type == CodeTokenType::GT ? ">" :
+            type == CodeTokenType::Identifier ? "identifier" :
+            type == CodeTokenType::Integer ? "Integer" :
+            type == CodeTokenType::LE ? "<=" :
+            type == CodeTokenType::List ? "List" :
+            type == CodeTokenType::LT ? "<" :
+            type == CodeTokenType::Mod ? "%" :
+            type == CodeTokenType::Module ? "module" :
+            type == CodeTokenType::Mul ? "*" :
+            type == CodeTokenType::NE ? "<>" :
+            type == CodeTokenType::Not ? "not" :
+            type == CodeTokenType::OpenBracket ? "(" :
+            type == CodeTokenType::OpenSquareBracket ? "[" :
+            type == CodeTokenType::Or ? "or" :
+            type == CodeTokenType::Phrase ? "phrase" :
+            type == CodeTokenType::Sentence ? "sentence" :
+            type == CodeTokenType::String ? "String" :
+            type == CodeTokenType::Sub ? "-" :
+            type == CodeTokenType::Type ? "Type" :
+            type == CodeTokenType::Using ? "using" :
+            "UnKnown";
+    }
+
     CodeFile::Ptr CodeFile::Parse(const string & codeString)
     {
         auto codeFile = std::make_shared<CodeFile>();

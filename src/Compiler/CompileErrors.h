@@ -1,10 +1,6 @@
 #ifndef MINIMOE_COMPILE_ERROR_H
 #define MINIMOE_COMPILE_ERROR_H
 
-#include <vector>
-#include <string>
-#include <memory>
-
 namespace minimoe
 {
     enum class CompileErrorType
@@ -17,8 +13,9 @@ namespace minimoe
         Parser_NoMoreToken,
         Parser_CloseBracketNotFound,
         Parser_CanNotResolveSymbol,
+        Parser_UnExpectedTokenType,
+        Parser_WrongFunctionName,
     };
-
 }
 
 #endif

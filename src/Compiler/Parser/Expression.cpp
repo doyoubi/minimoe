@@ -107,7 +107,22 @@ namespace minimoe
 
     string FunctionInvokeExpression::ToLog()
     {
-        return "not implemented";
+        string name, argument;
+        for (auto & fragment : function->fragments)
+        {
+            if (fragment->type == FunctionFragmentType::Name)
+            {
+                if (!name.empty()) name += "_";
+                name += fragment->name;
+            }
+        }
+        for (auto & arg : arguments)
+        {
+            if (!argument.empty()) argument += ", ";
+            argument += arg->ToLog();
+        }
+        string s = name + "(" + argument + ")";
+        return s;
     }
 
     string ListExpression::ToLog()

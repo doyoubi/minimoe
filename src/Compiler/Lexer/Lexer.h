@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 
 #include "Compiler/CompileErrors.h"
 
@@ -56,6 +57,8 @@ namespace minimoe
 
         UnKnown,
     };
+
+    std::string TokenTypeToString(CodeTokenType type);
 
     struct CodeToken
     {

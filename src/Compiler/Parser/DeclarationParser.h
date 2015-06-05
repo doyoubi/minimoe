@@ -8,16 +8,21 @@
 
 namespace minimoe
 {
-    class Declaration
-    {};
+    class Declaration : public std::enable_shared_from_this<Declaration>
+    {
+    public:
+        virtual std::string ToLog() = 0;
+    };
 
-    class TypeDeclaration
+    class TypeDeclaration : public Declaration
     {
     public:
         typedef std::shared_ptr<TypeDeclaration> Ptr;
 
         std::string name;
         std::vector<std::string> members;
+
+        std::string ToLog() override;
     };
 
     class TagDeclaration : public Declaration
@@ -25,24 +30,10 @@ namespace minimoe
     public:
         typedef std::shared_ptr<TagDeclaration> Ptr;
 
+        std::string ToLog() override;
     };
 
-    enum class FunctionFragmentType
-    {
-        Name,
-        Argument,
-    };
-
-    class FunctionFragment
-    {
-    public:
-        typedef std::vector<FunctionFragment> List;
-
-        FunctionFragmentType type;
-        std::string name; // both used for funation name and argument name
-    };
-
-    enum class FunctionDeclarationType
+    enum class FunctionType
     {
         Phrase,     // expression, cannot be an statement
         Sentence,   // statement
@@ -58,24 +49,48 @@ namespace minimoe
         Assignable,     // for sentence and block only, represnets a assignable expression
     };
 
-    class ArgumentDeclaration : Declaration
+    enum class FunctionFragmentType
+    {
+        Name,
+        Argument,
+    };
+
+    class FunctionFragment
+    {
+    public:
+        typedef std::shared_ptr<FunctionFragment> Ptr;
+        typedef std::vector<Ptr> List;
+
+        FunctionFragmentType type;
+        std::string name; // both used for funation name and argument name
+    };
+
+    class ArgumentDeclaration : public Declaration
     {
     public:
         typedef std::shared_ptr<ArgumentDeclaration> Ptr;
         typedef std::vector<Ptr> List;
 
         FunctionArgumentType type;
+
+        std::string ToLog() override;
     };
 
-    class FunctionDeclaration : Declaration
+    class FunctionDeclaration : public Declaration
     {
     public:
         typedef std::shared_ptr<FunctionDeclaration> Ptr;
         typedef std::vector<Ptr> List;
 
         FunctionFragment::List fragments;
-        FunctionDeclarationType type;
+        FunctionType type;
         ArgumentDeclaration::List arguments;
+
+        std::string ToLog() override;
+
+        static Ptr Make(FunctionType type);
+        FunctionDeclaration::Ptr name(std::string s);
+        FunctionDeclaration::Ptr arg(FunctionArgumentType type, std::string s);
     };
 
     enum class Type
@@ -94,13 +109,15 @@ namespace minimoe
         Unknown,
     };
 
-    class VariableDeclaration : Declaration
+    class VariableDeclaration : public Declaration
     {
     public:
         typedef std::shared_ptr<VariableDeclaration> Ptr;
 
         Type type;
         TypeDeclaration::Ptr userDefinedType;  // used when type == Type::UserDefined
+
+        std::string ToLog() override;
 
         std::string strValue;
         Keyword builtInValue; // true, false, null
