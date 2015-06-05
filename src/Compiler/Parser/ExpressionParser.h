@@ -33,7 +33,7 @@ namespace minimoe
         // symbol value
         Type builtInType = Type::Unknown;     // only used when SymbolType == SymbolType::Type
         TypeDeclaration::Ptr typeDeclaration; // only used when builtInType == Type::UserDefined
-        Keyword keyword = Keyword::Unknown;   // only used when SymbolType == SymbolType::Keyword
+        Keyword keyword = Keyword::Unknown;   // for true, false, null, only used when SymbolType == SymbolType::Keyword
         VariableDeclaration::Ptr varDeclaration; // only used when SymbolType == SymbolType::Variable
 
         std::string name;

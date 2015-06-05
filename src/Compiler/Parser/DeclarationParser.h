@@ -17,6 +17,7 @@ namespace minimoe
         typedef std::shared_ptr<TypeDeclaration> Ptr;
 
         std::string name;
+        std::vector<std::string> members;
     };
 
     class TagDeclaration : public Declaration

@@ -136,7 +136,7 @@ void TestVariable()
     item->LoadPredefinedSymbol();
     stack.Push(item);
 
-    auto addVariable = [&stack](Type type, std::string name){
+    auto AddVariable = [&stack](Type type, std::string name){
         auto variableItem = std::make_shared<SymbolStackItem>();
         auto declaration = std::make_shared<VariableDeclaration>();
         declaration->type = type;
@@ -145,7 +145,7 @@ void TestVariable()
     };
 
     {
-        addVariable(Type::String, "doyoubi");
+        AddVariable(Type::String, "doyoubi");
         Tokenize("doyoubi", tokens);
         CompileError::List errors;
         auto exp = stack.ParseSymbol(tokens.begin(), tokens.end(), errors);
@@ -155,7 +155,17 @@ void TestVariable()
         auto sexp = std::dynamic_pointer_cast<SymbolExpression>(exp);
         TEST_ASSERT(sexp != nullptr);
         TEST_ASSERT(sexp->ToLog() == "(doyoubi:String)");
+        TEST_ASSERT(sexp->symbol->symbolType == SymbolType::Variable);
         TEST_ASSERT(sexp->symbol == stack.Top()->symbolTables.back());
+    }
+    {
+        Tokenize("NotDeclaredVar", tokens);
+        CompileError::List errors;
+        auto exp = stack.ParseSymbol(tokens.begin(), tokens.end(), errors);
+        TEST_ASSERT(exp == nullptr);
+        TEST_ASSERT(errors.size() == 1);
+        TEST_ASSERT(errors.back().errorType == CompileErrorType::Parser_CanNotResolveSymbol);
+        TEST_ASSERT(errors.back().token->value == "NotDeclaredVar");
     }
 }
 
@@ -176,6 +186,9 @@ void TestBuiltInValue()
 
         auto vexp = std::dynamic_pointer_cast<SymbolExpression>(exp);
         TEST_ASSERT(vexp != nullptr);
+        TEST_ASSERT(vexp->symbol->symbolType == SymbolType::Keyword);
+        TEST_ASSERT(vexp->symbol->keyword == Keyword::Null);
+        TEST_ASSERT(vexp->symbol->name == "null");
         TEST_ASSERT(vexp->ToLog() == "null");
     }
     {
@@ -187,6 +200,9 @@ void TestBuiltInValue()
 
         auto vexp = std::dynamic_pointer_cast<SymbolExpression>(exp);
         TEST_ASSERT(vexp != nullptr);
+        TEST_ASSERT(vexp->symbol->symbolType == SymbolType::Keyword);
+        TEST_ASSERT(vexp->symbol->keyword == Keyword::True);
+        TEST_ASSERT(vexp->symbol->name == "true");
         TEST_ASSERT(vexp->ToLog() == "true");
     }
     {
@@ -198,7 +214,34 @@ void TestBuiltInValue()
 
         auto vexp = std::dynamic_pointer_cast<SymbolExpression>(exp);
         TEST_ASSERT(vexp != nullptr);
+        TEST_ASSERT(vexp->symbol->symbolType == SymbolType::Keyword);
+        TEST_ASSERT(vexp->symbol->keyword == Keyword::False);
+        TEST_ASSERT(vexp->symbol->name == "false");
         TEST_ASSERT(vexp->ToLog() == "false");
+    }
+}
+
+void TestBuiltInType()
+{
+    CodeToken::List tokens;
+    SymbolStack stack;
+    auto item = std::make_shared<SymbolStackItem>();
+    item->LoadPredefinedSymbol();
+    stack.Push(item);
+
+    {
+        Tokenize("Integer", tokens);
+        CompileError::List errors;
+        auto exp = stack.ParseSymbol(tokens.begin(), tokens.end(), errors);
+        TEST_ASSERT(exp != nullptr);
+        TEST_ASSERT(errors.empty());
+
+        auto sexp = std::dynamic_pointer_cast<SymbolExpression>(exp);
+        TEST_ASSERT(sexp != nullptr);
+        TEST_ASSERT(sexp->symbol->symbolType == SymbolType::Type);
+        TEST_ASSERT(sexp->symbol->builtInType == Type::Integer);
+        TEST_ASSERT(sexp->symbol->name == "Integer");
+        TEST_ASSERT(sexp->ToLog() == "Integer");
     }
 }
 
@@ -209,5 +252,6 @@ void InvokeExpressionParserTest()
     TestUnaryExpression();
     TestVariable();
     TestBuiltInValue();
+    TestBuiltInType();
     std::cout << "Expresion Parser Test Complete" << std::endl;
 }
