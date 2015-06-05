@@ -63,7 +63,6 @@ namespace minimoe
         return
             keyword == Keyword::Continuation ? "continuation" :
             keyword == Keyword::Else ? "else" :
-            keyword == Keyword::End ? "end" :
             keyword == Keyword::False ? "false" :
             keyword == Keyword::FunctioinResult ? "result" :
             keyword == Keyword::GetItem ? "[]" :

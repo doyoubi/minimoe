@@ -88,6 +88,12 @@ namespace minimoe
             case State::Begin:
                 switch (c)
                 {
+                case '[':
+                    addToken("[", CodeTokenType::OpenSquareBracket);
+                    break;
+                case ']':
+                    addToken("]", CodeTokenType::CloseSquareBracket);
+                    break;
                 case '(':
                     addToken("(", CodeTokenType::OpenBracket);
                     break;

@@ -460,7 +460,7 @@ void testOperator()
 {
     string code = 
         "(),:+-*/%><<=>===<>.--\n"
-        "===>";
+        "===>[]";
     FIRST_LINE(code, 2);
     FIRST_TOKEN(16);
     TOKEN(1, 1, "(", CodeTokenType::OpenBracket);
@@ -482,10 +482,12 @@ void testOperator()
     LAST_TOKEN;
     NEXT_LINE;
 
-    FIRST_TOKEN(3);
+    FIRST_TOKEN(5);
     TOKEN(2, 1, "==", CodeTokenType::EQ);
     TOKEN(2, 3, "=", CodeTokenType::Assign);
     TOKEN(2, 4, ">", CodeTokenType::GT);
+    TOKEN(2, 5, "[", CodeTokenType::OpenSquareBracket);
+    TOKEN(2, 6, "]", CodeTokenType::CloseSquareBracket);
     LAST_TOKEN;
 
     NEXT_LINE;

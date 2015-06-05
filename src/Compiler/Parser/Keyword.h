@@ -18,7 +18,6 @@ namespace minimoe
         Size, // size(), used to get length of array
         Type, // type(), used to get type of object
         RedirectTo, // RedirectTo, call native function
-        End,
 
         Unknown,
     };

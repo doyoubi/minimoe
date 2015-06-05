@@ -10,10 +10,10 @@ namespace minimoe
 {
     enum class CodeTokenType
     {
-        Integer,
-        Float,
-        String,
-        Identifier,
+        Integer, // Integer literal
+        Float,   // Float literal
+        String,  // String literal
+        Identifier, // used for Symbol and Function
 
         Module,
         Using,
@@ -31,6 +31,8 @@ namespace minimoe
 
         End,
 
+        OpenSquareBracket,  // [
+        CloseSquareBracket, // ]
         OpenBracket,  // (
         CloseBracket, // )
         Comma,        // ,
