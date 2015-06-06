@@ -127,7 +127,15 @@ namespace minimoe
 
     string ListExpression::ToLog()
     {
-        return "not implemented";
+        string s("List(");
+        for (auto & ele : elements)
+        {
+            if (ele != elements.front())
+                s += ", ";
+            s += ele->ToLog();
+        }
+        s += ")";
+        return s;
     }
 
 }

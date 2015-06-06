@@ -204,6 +204,8 @@ namespace minimoe
         Expression::Ptr ParseFunctionArgumentFragment(TokenIter & head, TokenIter tail, CompileError::List & errors);
         bool CheckFunctionNameFragment(TokenIter & head, TokenIter tail,
             const std::string & name, CompileError::List & errors);
+
+        Expression::Ptr ParseList(TokenIter & head, TokenIter tail, CompileError::List & errors);
     };
 
 

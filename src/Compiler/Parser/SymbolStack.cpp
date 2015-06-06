@@ -41,14 +41,16 @@ namespace minimoe
             auto index = tokenTypes;
             for (; index < tokenTypes + count; index++)
             {
+                // just check, don't change the head iter
                 if (CheckSingleTokenType(TokenIter(head), tail, *index))
                     break;
             }
             if (index == tokenTypes + count)
                 return exp;
+            ++head; // if success, change iter here
 
             CompileError::List rhsErrors;
-            auto rhs = (this->*innerParser)(++head, tail, rhsErrors);
+            auto rhs = (this->*innerParser)(head, tail, rhsErrors);
             if (rhs == nullptr)
                 return exp;
 
@@ -95,11 +97,18 @@ namespace minimoe
         if (CheckReachTheEnd(head, tail, errors))
             return nullptr;
 
-        CompileError::List funcErrors;
-        auto funcExp = ParseInvokeFunction(head, tail, funcErrors);
+        CompileError::List currErrors;
+        auto temp = head;
+        auto funcExp = ParseInvokeFunction(head, tail, currErrors);
         if (funcExp != nullptr)
             return funcExp;
 
+        head = temp;
+        auto listExp = ParseList(head, tail, currErrors);
+        if (listExp != nullptr)
+            return listExp;
+
+        head = temp;
         auto token = *head;
         switch (token->type)
         {
@@ -151,7 +160,7 @@ namespace minimoe
             }
         }
 
-        for (auto & error : funcErrors)
+        for (auto & error : currErrors)
             errors.push_back(error);
 
         return nullptr;
@@ -307,6 +316,50 @@ namespace minimoe
             "expect function name fragment \"" + name + "\" but get\"" + token->value + "\""
         });
         return false;
+    }
+
+    Expression::Ptr SymbolStack::ParseList(TokenIter & head, TokenIter tail, CompileError::List & errors)
+    {
+        if (CheckReachTheEnd(head, tail, errors))
+            return nullptr;
+        if (!CheckSingleTokenType(head, tail, CodeTokenType::OpenBracket, errors))
+            return nullptr;
+        Expression::List elements;
+        CompileError::List currErrors;
+        // (), (1,), (1,2) are valid ListExpression, while (1), (1,2,) are not
+        while (true)
+        {
+            auto temp = head;
+            auto exp = ParseExpression(head, tail, currErrors);
+            if (exp == nullptr)
+            {
+                head = temp;
+                if (elements.size() < 2) break;
+                errors.push_back({
+                    CompileErrorType::Parser_NotOneElementListShouldNotEndWithComma,
+                    *head,
+                    "List with more than one element should not end with comma"
+                });
+                return nullptr;
+            }
+            elements.push_back(exp);
+            if (!CheckSingleTokenType(TokenIter(head), tail, CodeTokenType::Comma, currErrors))
+            {
+                if (elements.size() != 1) break;
+                errors.push_back({
+                    CompileErrorType::Parser_OneElementListShouldEndWithComma,
+                    *head,
+                    "In one element List, there should be a comma after the element"
+                });
+                return nullptr;
+            }
+            ++head;
+        }
+        if (!CheckSingleTokenType(head, tail, CodeTokenType::CloseBracket, errors))
+            return nullptr;
+        auto list = std::make_shared<ListExpression>();
+        list->elements = elements;
+        return list;
     }
 
     /*********************

@@ -345,6 +345,57 @@ void TestFunction()
     }
 }
 
+void TestList()
+{
+    CodeToken::List tokens;
+    SymbolStack stack;
+    auto item = std::make_shared<SymbolStackItem>();
+    item->LoadPredefinedSymbol();
+    stack.Push(item);
+    {
+        Tokenize("() or true", tokens);
+        CompileError::List errors;
+        auto exp = stack.ParseExpression(tokens.begin(), tokens.end(), errors);
+        TEST_ASSERT(exp != nullptr);
+        TEST_ASSERT(errors.empty());
+        TEST_ASSERT(exp->ToLog() == "or(List(), true)");
+    }
+    {
+        Tokenize("(1,)", tokens);
+        CompileError::List errors;
+        auto exp = stack.ParseExpression(tokens.begin(), tokens.end(), errors);
+        TEST_ASSERT(exp != nullptr);
+        TEST_ASSERT(errors.empty());
+        TEST_ASSERT(exp->ToLog() == "List(1)");
+    }
+    {
+        Tokenize("(1,2)", tokens);
+        CompileError::List errors;
+        auto exp = stack.ParseExpression(tokens.begin(), tokens.end(), errors);
+        TEST_ASSERT(exp != nullptr);
+        TEST_ASSERT(errors.empty());
+        TEST_ASSERT(exp->ToLog() == "List(1, 2)");
+    }
+    {
+        Tokenize("(1,2,)", tokens);
+        CompileError::List errors;
+        auto exp = stack.ParseList(tokens.begin(), tokens.end(), errors);
+        TEST_ASSERT(exp == nullptr);
+        TEST_ASSERT(errors.size() == 1);
+        auto error = errors.front();
+        TEST_ASSERT(error.errorType == CompileErrorType::Parser_NotOneElementListShouldNotEndWithComma);
+    }
+    {
+        Tokenize("(1)", tokens);
+        CompileError::List errors;
+        auto exp = stack.ParseList(tokens.begin(), tokens.end(), errors);
+        TEST_ASSERT(exp == nullptr);
+        TEST_ASSERT(errors.size() == 1);
+        auto error = errors.front();
+        TEST_ASSERT(error.errorType == CompileErrorType::Parser_OneElementListShouldEndWithComma);
+    }
+}
+
 void InvokeExpressionParserTest()
 {
     TestParsePrimitive();
@@ -354,5 +405,6 @@ void InvokeExpressionParserTest()
     TestBuiltInValue();
     TestBuiltInType();
     TestFunction();
+    TestList();
     std::cout << "Expresion Parser Test Complete" << std::endl;
 }
