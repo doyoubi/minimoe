@@ -17,6 +17,8 @@ namespace minimoe
         Parser_WrongFunctionName,
         Parser_OneElementListShouldEndWithComma,
         Parser_NotOneElementListShouldNotEndWithComma,
+
+        Parser_NoMoreLine,
     };
 }
 

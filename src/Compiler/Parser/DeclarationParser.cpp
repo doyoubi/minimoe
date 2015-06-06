@@ -1,11 +1,33 @@
 #include <string>
 
+#include "UtilsParser.h"
 #include "DeclarationParser.h"
 #include "Utils/Debug.h"
 
 namespace minimoe
 {
     using std::string;
+
+    /***********************
+    Parse
+    **********************/
+    TagDeclaration::Ptr TagDeclaration::Parse(LineIter & head, LineIter tail, CompileError::List & errors)
+    {
+        if (CheckEndOfFile(head, tail, errors))
+            return nullptr;
+        auto tokenIt = (*head)->tokens.begin();
+        auto tokenEnd = (*head)->tokens.end();
+        if (CheckReachTheEnd(tokenIt, tokenEnd, errors))
+            return nullptr;
+        if (!CheckSingleTokenType(tokenIt, tokenEnd, CodeTokenType::Tag, errors))
+            return nullptr;
+        string name = (*tokenIt)->value;
+        if (!CheckSingleTokenType(tokenIt, tokenEnd, CodeTokenType::Identifier, errors))
+            return nullptr;
+        auto tag = std::make_shared<TagDeclaration>();
+        tag->name = name;
+        return tag;
+    }
 
     /****************
     ToLog
@@ -17,7 +39,7 @@ namespace minimoe
 
     std::string TagDeclaration::ToLog()
     {
-        return "not implemented";
+        return "Tag(" + name + ")";
     }
 
     std::string ArgumentDeclaration::ToLog()

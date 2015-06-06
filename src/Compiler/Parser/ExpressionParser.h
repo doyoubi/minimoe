@@ -176,7 +176,6 @@ namespace minimoe
     class SymbolStack
     {
     public:
-        typedef CodeToken::List::iterator TokenIter;
         typedef Expression::Ptr(SymbolStack::* ParseFunctionType)(TokenIter&, TokenIter, CompileError::List&);
 
         SymbolStackItem::List stackItems;
@@ -192,9 +191,6 @@ namespace minimoe
         Expression::Ptr ParseOr(TokenIter & head, TokenIter tail, CompileError::List & errors);
         Expression::Ptr ParseAnd(TokenIter & head, TokenIter tail, CompileError::List & errors);
         Expression::Ptr ParsePrimitive(TokenIter & head, TokenIter tail, CompileError::List & errors);
-        bool CheckSingleTokenType(TokenIter & token, TokenIter tail, CodeTokenType type);
-        bool CheckSingleTokenType(TokenIter & token, TokenIter tail, CodeTokenType type, CompileError::List & errors);
-        bool CheckReachTheEnd(TokenIter head, TokenIter tail, CompileError::List & errors);
 
         // include types, built in values, variables
         Expression::Ptr ParseSymbol(TokenIter & head, TokenIter tail, CompileError::List & errors);

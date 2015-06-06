@@ -1,6 +1,7 @@
 #include <sstream>
 
 #include "Compiler/Lexer/Lexer.h"
+#include "Utils/Debug.h"
 
 namespace minimoe
 {
@@ -46,9 +47,10 @@ namespace minimoe
             type == CodeTokenType::Sentence ? "sentence" :
             type == CodeTokenType::StringLiteral ? "String" :
             type == CodeTokenType::Sub ? "-" :
+            type == CodeTokenType::Tag ? "Tag" :
             type == CodeTokenType::Type ? "Type" :
             type == CodeTokenType::Using ? "using" :
-            "UnKnown";
+            ERRORMSG("invalid CodeTokenType"), "UnKnown";
     }
 
     CodeFile::Ptr CodeFile::Parse(const string & codeString)
@@ -98,6 +100,7 @@ namespace minimoe
                     value == "and" ? CodeTokenType::And :
                     value == "or" ? CodeTokenType::Or :
                     value == "not" ? CodeTokenType::Not :
+                    value == "tag" ? CodeTokenType::Tag :
                     CodeTokenType::Identifier;
             }
             else if (type == CodeTokenType::StringLiteral)

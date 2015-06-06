@@ -15,7 +15,7 @@ namespace minimoe
             unaryOperator == UnaryOperator::Negative ? "-" :
             unaryOperator == UnaryOperator::Not ? "not" :
             unaryOperator == UnaryOperator::Positive ? "+" :
-            ErrorTag;
+            (ERRORMSG("invalid UnaryOperator"), ErrorTag);
         s += "(" + operand->ToLog() + ")";
         return s;
     }
@@ -37,7 +37,7 @@ namespace minimoe
             binaryOperator == BinaryOperator::NE ? "<>(" :
             binaryOperator == BinaryOperator::And ? "and(" :
             binaryOperator == BinaryOperator::Or ? "or(" :
-            ErrorTag;
+            (ERRORMSG("invalid BinaryOperator"), ErrorTag);
         s += leftOperand->ToLog() + ", " + rightOperand->ToLog() + ")";
         return s;
     }
@@ -55,7 +55,7 @@ namespace minimoe
             type == Type::String ? "String" :
             type == Type::UserDefined ? "Object" :
             type == Type::Tag ? "Tag" :
-            "UnKnown";
+            (ERRORMSG("invalid Type"), ErrorTag);
     }
 
     std::string KeywordToString(Keyword keyword)
@@ -72,7 +72,7 @@ namespace minimoe
             keyword == Keyword::Size ? "size" :
             keyword == Keyword::True ? "true" :
             keyword == Keyword::Var ? "var" :
-            "UnKnown";
+            (ERRORMSG("invalid Keyword"), ErrorTag);
     }
 
     string LiteralExpression::ToLog()

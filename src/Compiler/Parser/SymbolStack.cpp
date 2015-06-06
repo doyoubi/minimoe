@@ -1,4 +1,5 @@
 #include "ExpressionParser.h"
+#include "UtilsParser.h"
 #include "Utils/Debug.h"
 
 namespace minimoe
@@ -164,50 +165,6 @@ namespace minimoe
             errors.push_back(error);
 
         return nullptr;
-    }
-
-    bool SymbolStack::CheckSingleTokenType(TokenIter & token, TokenIter tail, CodeTokenType type)
-    {
-        if (token == tail)
-            return false;
-        if ((*token)->type == type)
-        {
-            ++token;
-            return true;
-        }
-        return false;
-    }
-
-    bool SymbolStack::CheckSingleTokenType(TokenIter & token, TokenIter tail,
-        CodeTokenType type, CompileError::List & errors)
-    {
-        DEBUGCHECK(token != tail);
-        if ((*token)->type == type)
-        {
-            ++token;
-            return true;
-        }
-        errors.push_back({
-            CompileErrorType::Parser_UnExpectedTokenType,
-            *token,
-            "expect token type " + TokenTypeToString(type) + " but got " + TokenTypeToString((*token)->type)
-        });
-        return false;
-    }
-
-    bool SymbolStack::CheckReachTheEnd(TokenIter head, TokenIter tail, CompileError::List & errors)
-    {
-        if (head != tail)
-            return false;
-        // here we assume that no empty CodeLine exist, so prev(head) will not crash
-        auto token = *std::prev(head);
-        errors.push_back({
-            CompileErrorType::Parser_NoMoreToken,
-            token,
-            //*std::prev(tokenIter),  // should not do this! It will crash as a result of compiler's bug
-            "expect token but no more token found"
-        });
-        return true;
     }
 
     Expression::Ptr SymbolStack::ParseSymbol(TokenIter & head, TokenIter tail, CompileError::List & errors)

@@ -22,6 +22,7 @@ namespace minimoe
         Sentence,
         Block,
         Type,
+        Tag,
 
         CPS,
         Category,
@@ -75,6 +76,8 @@ namespace minimoe
         {}
     };
 
+    typedef CodeToken::List::iterator TokenIter;
+
     struct CompileError
     {
         typedef std::vector<CompileError> List;
@@ -91,6 +94,8 @@ namespace minimoe
 
         CodeToken::List tokens;
     };
+
+    typedef CodeLine::List::iterator LineIter;
 
     struct CodeFile
     {

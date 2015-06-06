@@ -5,12 +5,16 @@
 #include <vector>
 
 #include "Keyword.h"
+#include "Compiler/Lexer/Lexer.h"
 
 namespace minimoe
 {
     class Declaration : public std::enable_shared_from_this<Declaration>
     {
     public:
+        typedef std::shared_ptr<Declaration> Ptr;
+        typedef std::vector<Ptr> List;
+
         virtual std::string ToLog() = 0;
     };
 
@@ -30,6 +34,9 @@ namespace minimoe
     public:
         typedef std::shared_ptr<TagDeclaration> Ptr;
 
+        std::string name;
+
+        static Ptr Parse(LineIter & head, LineIter tail, CompileError::List & errors);
         std::string ToLog() override;
     };
 
