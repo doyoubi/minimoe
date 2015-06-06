@@ -143,7 +143,7 @@ namespace minimoe
             }
         case CodeTokenType::OpenBracket:
             {
-                auto exp = ParsePrimitive(++head, tail, errors);
+                auto exp = ParseExpression(++head, tail, errors);
                 if (exp == nullptr) return nullptr;
                 if (CheckSingleTokenType(head, tail, CodeTokenType::CloseBracket))
                     return exp;

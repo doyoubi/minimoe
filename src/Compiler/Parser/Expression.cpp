@@ -77,7 +77,10 @@ namespace minimoe
 
     string LiteralExpression::ToLog()
     {
-        return value;
+        if (type == LiteralType::String)
+            return "\"" + value + "\"";
+        else
+            return value;
     }
 
     string SymbolExpression::ToLog()

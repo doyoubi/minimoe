@@ -16,7 +16,7 @@ void Tokenize(const string & codeString, CodeToken::List & tokens)
     tokens = codeFile->lines.back()->tokens;
 }
 
-void TestParsePrimitive()
+void TestLiteral()
 {
     CodeToken::List tokens;
     SymbolStack stack;
@@ -396,9 +396,26 @@ void TestList()
     }
 }
 
+void TestComplexExpression()
+{
+    CodeToken::List tokens;
+    SymbolStack stack;
+    auto item = std::make_shared<SymbolStackItem>();
+    item->LoadPredefinedSymbol();
+    stack.Push(item);
+    {
+        Tokenize("(1,2,3) or (1 and 2) and \"doyoubi\"", tokens);
+        CompileError::List errors;
+        auto exp = stack.ParseExpression(tokens.begin(), tokens.end(), errors);
+        TEST_ASSERT(exp != nullptr);
+        TEST_ASSERT(errors.empty());
+        TEST_ASSERT(exp->ToLog() == "or(List(1, 2, 3), and(and(1, 2), \"doyoubi\"))");
+    }
+}
+
 void InvokeExpressionParserTest()
 {
-    TestParsePrimitive();
+    TestLiteral();
     TestBinaryExpression();
     TestUnaryExpression();
     TestVariable();
@@ -406,5 +423,6 @@ void InvokeExpressionParserTest()
     TestBuiltInType();
     TestFunction();
     TestList();
+    TestComplexExpression();
     std::cout << "Expresion Parser Test Complete" << std::endl;
 }
