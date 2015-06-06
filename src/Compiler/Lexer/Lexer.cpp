@@ -25,12 +25,12 @@ namespace minimoe
             type == CodeTokenType::Div ? "/" :
             type == CodeTokenType::End ? "end" :
             type == CodeTokenType::EQ ? "==" :
-            type == CodeTokenType::Float ? "Float" :
+            type == CodeTokenType::FloatLiteral ? "Float" :
             type == CodeTokenType::GE ? ">=" :
             type == CodeTokenType::GetMember ? "." :
             type == CodeTokenType::GT ? ">" :
             type == CodeTokenType::Identifier ? "identifier" :
-            type == CodeTokenType::Integer ? "Integer" :
+            type == CodeTokenType::IntegerLiteral ? "Integer" :
             type == CodeTokenType::LE ? "<=" :
             type == CodeTokenType::List ? "List" :
             type == CodeTokenType::LT ? "<" :
@@ -44,7 +44,7 @@ namespace minimoe
             type == CodeTokenType::Or ? "or" :
             type == CodeTokenType::Phrase ? "phrase" :
             type == CodeTokenType::Sentence ? "sentence" :
-            type == CodeTokenType::String ? "String" :
+            type == CodeTokenType::StringLiteral ? "String" :
             type == CodeTokenType::Sub ? "-" :
             type == CodeTokenType::Type ? "Type" :
             type == CodeTokenType::Using ? "using" :
@@ -100,7 +100,7 @@ namespace minimoe
                     value == "not" ? CodeTokenType::Not :
                     CodeTokenType::Identifier;
             }
-            else if (type == CodeTokenType::String)
+            else if (type == CodeTokenType::StringLiteral)
             {
                 bool success = codeFile->UnEscapeString(value, token);
                 if (!success)
@@ -282,7 +282,7 @@ namespace minimoe
                 }
                 else if (c == '"')
                 {
-                    addToken(string(std::next(head), charIt), CodeTokenType::String);
+                    addToken(string(std::next(head), charIt), CodeTokenType::StringLiteral);
                     head = headUnusedTag;
                     state = State::Begin;
                 }
@@ -312,7 +312,7 @@ namespace minimoe
                     else
                     {
                         // ignore this '.' and treat this token as Float, but raise error
-                        addToken(string(head, charIt), CodeTokenType::Float);
+                        addToken(string(head, charIt), CodeTokenType::FloatLiteral);
                         addError(CompileErrorType::Lexer_InvalidFloat, string(head, std::next(charIt)),
                             "'.' should be followed by digit");
                         state = State::Begin;
@@ -324,7 +324,7 @@ namespace minimoe
                     --charIt;
                     // decrease because the current char is not belong to this token
                     // and charIt will increase at the end of loop
-                    addToken(string(head, std::next(charIt)), CodeTokenType::Integer);
+                    addToken(string(head, std::next(charIt)), CodeTokenType::IntegerLiteral);
                     state = State::Begin;
                     head = headUnusedTag;
                 }
@@ -339,7 +339,7 @@ namespace minimoe
                     --charIt;
                     // decrease because the current char is not belong to this token
                     // and charIt will increase at the end of loop
-                    addToken(string(head, std::next(charIt)), CodeTokenType::Float);
+                    addToken(string(head, std::next(charIt)), CodeTokenType::FloatLiteral);
                     state = State::Begin;
                     head = headUnusedTag;
                 }

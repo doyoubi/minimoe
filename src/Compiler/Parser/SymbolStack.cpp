@@ -103,15 +103,15 @@ namespace minimoe
         auto token = *head;
         switch (token->type)
         {
-        case CodeTokenType::Integer:
-        case CodeTokenType::Float:
-        case CodeTokenType::String:
+        case CodeTokenType::IntegerLiteral:
+        case CodeTokenType::FloatLiteral:
+        case CodeTokenType::StringLiteral:
             {
                 auto literalExp = std::make_shared<LiteralExpression>();
                 literalExp->type =
-                    token->type == CodeTokenType::Integer ? LiteralType::Integer :
-                    token->type == CodeTokenType::Float ? LiteralType::Float :
-                    token->type == CodeTokenType::String ? LiteralType::String : 
+                    token->type == CodeTokenType::IntegerLiteral ? LiteralType::Integer :
+                    token->type == CodeTokenType::FloatLiteral ? LiteralType::Float :
+                    token->type == CodeTokenType::StringLiteral ? LiteralType::String : 
                     LiteralType::UnKnown;
                 literalExp->value = token->value;
                 ++head;

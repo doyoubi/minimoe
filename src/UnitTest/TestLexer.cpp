@@ -110,12 +110,12 @@ void testPrimitiveToken()
     string code = "1+2**3\n";
     FIRST_LINE(code, 1);
     FIRST_TOKEN(6);
-    TOKEN(1, 1, "1", CodeTokenType::Integer);
+    TOKEN(1, 1, "1", CodeTokenType::IntegerLiteral);
     TOKEN(1, 2, "+", CodeTokenType::Add);
-    TOKEN(1, 3, "2", CodeTokenType::Integer);
+    TOKEN(1, 3, "2", CodeTokenType::IntegerLiteral);
     TOKEN(1, 4, "*", CodeTokenType::Mul);
     TOKEN(1, 5, "*", CodeTokenType::Mul);
-    TOKEN(1, 6, "3", CodeTokenType::Integer);
+    TOKEN(1, 6, "3", CodeTokenType::IntegerLiteral);
     LAST_TOKEN;
 
     NEXT_LINE;
@@ -131,11 +131,11 @@ void testLongToken()
         "111+2222+12345";
     FIRST_LINE(code, 1);
     FIRST_TOKEN(5);
-    TOKEN(1, 1, "111", CodeTokenType::Integer);
+    TOKEN(1, 1, "111", CodeTokenType::IntegerLiteral);
     TOKEN(1, 4, "+", CodeTokenType::Add);
-    TOKEN(1, 5, "2222", CodeTokenType::Integer);
+    TOKEN(1, 5, "2222", CodeTokenType::IntegerLiteral);
     TOKEN(1, 9, "+", CodeTokenType::Add);
-    TOKEN(1, 10, "12345", CodeTokenType::Integer);
+    TOKEN(1, 10, "12345", CodeTokenType::IntegerLiteral);
     LAST_TOKEN;
 
     NEXT_LINE;
@@ -155,28 +155,28 @@ void testCodeFileStructure()
         "5\n";
     FIRST_LINE(code, 4);
     FIRST_TOKEN(1);
-    TOKEN(1, 1, "1", CodeTokenType::Integer);
+    TOKEN(1, 1, "1", CodeTokenType::IntegerLiteral);
     LAST_TOKEN;
 
     NEXT_LINE;
     FIRST_TOKEN(3);
-    TOKEN(2, 1, "2", CodeTokenType::Integer);
+    TOKEN(2, 1, "2", CodeTokenType::IntegerLiteral);
     TOKEN(2, 2, "+", CodeTokenType::Add);
-    TOKEN(2, 3, "1", CodeTokenType::Integer);
+    TOKEN(2, 3, "1", CodeTokenType::IntegerLiteral);
     LAST_TOKEN;
 
     NEXT_LINE;
     FIRST_TOKEN(5);
-    TOKEN(3, 1, "3", CodeTokenType::Integer);
+    TOKEN(3, 1, "3", CodeTokenType::IntegerLiteral);
     TOKEN(3, 2, "+", CodeTokenType::Add);
-    TOKEN(3, 3, "2", CodeTokenType::Integer);
+    TOKEN(3, 3, "2", CodeTokenType::IntegerLiteral);
     TOKEN(3, 4, "+", CodeTokenType::Add);
-    TOKEN(3, 5, "1", CodeTokenType::Integer);
+    TOKEN(3, 5, "1", CodeTokenType::IntegerLiteral);
     LAST_TOKEN;
 
     NEXT_LINE;
     FIRST_TOKEN(1);
-    TOKEN(5, 1, "5", CodeTokenType::Integer);
+    TOKEN(5, 1, "5", CodeTokenType::IntegerLiteral);
     LAST_TOKEN;
 
     NEXT_LINE;
@@ -197,38 +197,38 @@ void testBlank()
         " 1 +2\n";
     FIRST_LINE(code, 6);
     FIRST_TOKEN(1);
-    TOKEN(1, 1, "1", CodeTokenType::Integer);
+    TOKEN(1, 1, "1", CodeTokenType::IntegerLiteral);
     LAST_TOKEN;
 
     NEXT_LINE;
     FIRST_TOKEN(1);
-    TOKEN(2, 2, "2", CodeTokenType::Integer);
+    TOKEN(2, 2, "2", CodeTokenType::IntegerLiteral);
     LAST_TOKEN;
 
     NEXT_LINE;
     FIRST_TOKEN(1);
-    TOKEN(3, 2, "3", CodeTokenType::Integer);
+    TOKEN(3, 2, "3", CodeTokenType::IntegerLiteral);
     LAST_TOKEN;
 
     NEXT_LINE;
     FIRST_TOKEN(3);
-    TOKEN(4, 1, "1", CodeTokenType::Integer);
+    TOKEN(4, 1, "1", CodeTokenType::IntegerLiteral);
     TOKEN(4, 3, "+", CodeTokenType::Add);
-    TOKEN(4, 5, "2", CodeTokenType::Integer);
+    TOKEN(4, 5, "2", CodeTokenType::IntegerLiteral);
     LAST_TOKEN;
 
     NEXT_LINE;
     FIRST_TOKEN(3);
-    TOKEN(5, 2, "1", CodeTokenType::Integer);
+    TOKEN(5, 2, "1", CodeTokenType::IntegerLiteral);
     TOKEN(5, 3, "+", CodeTokenType::Add);
-    TOKEN(5, 5, "2", CodeTokenType::Integer);
+    TOKEN(5, 5, "2", CodeTokenType::IntegerLiteral);
     LAST_TOKEN;
 
     NEXT_LINE;
     FIRST_TOKEN(3);
-    TOKEN(6, 2, "1", CodeTokenType::Integer);
+    TOKEN(6, 2, "1", CodeTokenType::IntegerLiteral);
     TOKEN(6, 4, "+", CodeTokenType::Add);
-    TOKEN(6, 5, "2", CodeTokenType::Integer);
+    TOKEN(6, 5, "2", CodeTokenType::IntegerLiteral);
     LAST_TOKEN;
 
     NEXT_LINE;
@@ -251,18 +251,18 @@ void testMultipleLine()
         "4\n";
     FIRST_LINE(code, 3);
     FIRST_TOKEN(1);
-    TOKEN(3, 2, "1", CodeTokenType::Integer);
+    TOKEN(3, 2, "1", CodeTokenType::IntegerLiteral);
     LAST_TOKEN;
 
     NEXT_LINE;
     FIRST_TOKEN(2);
-    TOKEN(6, 1, "2", CodeTokenType::Integer);
-    TOKEN(6, 3, "3", CodeTokenType::Integer);
+    TOKEN(6, 1, "2", CodeTokenType::IntegerLiteral);
+    TOKEN(6, 3, "3", CodeTokenType::IntegerLiteral);
     LAST_TOKEN;
 
     NEXT_LINE;
     FIRST_TOKEN(1);
-    TOKEN(8, 1, "4", CodeTokenType::Integer);
+    TOKEN(8, 1, "4", CodeTokenType::IntegerLiteral);
     LAST_TOKEN;
 
     NEXT_LINE;
@@ -277,9 +277,9 @@ void testError()
     string code = "1$2##3";
     FIRST_LINE(code, 1);
     FIRST_TOKEN(3);
-    TOKEN(1, 1, "1", CodeTokenType::Integer);
-    TOKEN(1, 3, "2", CodeTokenType::Integer);
-    TOKEN(1, 6, "3", CodeTokenType::Integer);
+    TOKEN(1, 1, "1", CodeTokenType::IntegerLiteral);
+    TOKEN(1, 3, "2", CodeTokenType::IntegerLiteral);
+    TOKEN(1, 6, "3", CodeTokenType::IntegerLiteral);
     NEXT_LINE;
     LAST_LINE;
 
@@ -296,8 +296,8 @@ void testFloat()
         string code = "2.333 0.0";
         FIRST_LINE(code, 1);
         FIRST_TOKEN(2);
-        TOKEN(1, 1, "2.333", CodeTokenType::Float);
-        TOKEN(1, 7, "0.0", CodeTokenType::Float);
+        TOKEN(1, 1, "2.333", CodeTokenType::FloatLiteral);
+        TOKEN(1, 7, "0.0", CodeTokenType::FloatLiteral);
         LAST_TOKEN;
 
         NEXT_LINE;
@@ -310,7 +310,7 @@ void testFloat()
         string code = "12.";
         FIRST_LINE(code, 1);
         FIRST_TOKEN(1);
-        TOKEN(1, 1, "12", CodeTokenType::Float);
+        TOKEN(1, 1, "12", CodeTokenType::FloatLiteral);
         LAST_TOKEN;
 
         NEXT_LINE;
@@ -338,38 +338,38 @@ void testString()
         ;
     FIRST_LINE(code, 7);
     FIRST_TOKEN(1);
-    TOKEN(1, 1, "unix end", CodeTokenType::String);
+    TOKEN(1, 1, "unix end", CodeTokenType::StringLiteral);
     LAST_TOKEN;
 
     NEXT_LINE;
     FIRST_TOKEN(1);
-    TOKEN(2, 1, "windows end", CodeTokenType::String);
+    TOKEN(2, 1, "windows end", CodeTokenType::StringLiteral);
     LAST_TOKEN;
 
     NEXT_LINE;
     FIRST_TOKEN(1);
-    TOKEN(3, 1, "", CodeTokenType::String);
+    TOKEN(3, 1, "", CodeTokenType::StringLiteral);
     LAST_TOKEN;
 
     NEXT_LINE;
     FIRST_TOKEN(2);
-    TOKEN(4, 1, "two", CodeTokenType::String);
-    TOKEN(4, 6, "string", CodeTokenType::String);
+    TOKEN(4, 1, "two", CodeTokenType::StringLiteral);
+    TOKEN(4, 6, "string", CodeTokenType::StringLiteral);
     LAST_TOKEN;
 
     NEXT_LINE;
     FIRST_TOKEN(1);
-    TOKEN(5, 1, "\a\b\f\r\t\v\\ ' \" ", CodeTokenType::String);
+    TOKEN(5, 1, "\a\b\f\r\t\v\\ ' \" ", CodeTokenType::StringLiteral);
     LAST_TOKEN;
 
     NEXT_LINE;
     FIRST_TOKEN(1);
-    TOKEN(7, 1, "unfinished escape \\j end", CodeTokenType::String);
+    TOKEN(7, 1, "unfinished escape \\j end", CodeTokenType::StringLiteral);
     LAST_TOKEN;
 
     NEXT_LINE;
     FIRST_TOKEN(1);
-    TOKEN(8, 1, "last line", CodeTokenType::String);
+    TOKEN(8, 1, "last line", CodeTokenType::StringLiteral);
     LAST_TOKEN;
 
     NEXT_LINE;
@@ -378,7 +378,7 @@ void testString()
     BEGIN_CHECK_ERROR(2);
     CHECK_ERROR(CompileErrorType::Lexer_InCompleteString, 6, 1, "\"unfinished line");
     CHECK_ERROR_WITH_TYPE(CompileErrorType::Lexer_InvalidEscapeChar, 7, 1,
-        "unfinished escape \\j end", CodeTokenType::String);
+        "unfinished escape \\j end", CodeTokenType::StringLiteral);
     END_CHECK_ERROR;
 }
 

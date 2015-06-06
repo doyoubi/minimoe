@@ -11,9 +11,9 @@ namespace minimoe
 {
     enum class CodeTokenType
     {
-        Integer, // Integer literal
-        Float,   // Float literal
-        String,  // String literal
+        IntegerLiteral, // Integer literal
+        FloatLiteral,   // Float literal
+        StringLiteral,  // String literal
         Identifier, // used for Symbol and Function
 
         Module,
