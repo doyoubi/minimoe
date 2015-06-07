@@ -3,6 +3,7 @@
 
 namespace minimoe
 {
+    // for tokens
     bool CheckSingleTokenType(TokenIter & token, TokenIter tail, CodeTokenType type)
     {
         if (token == tail)
@@ -48,6 +49,41 @@ namespace minimoe
         return true;
     }
 
+    bool CheckParseToLineEnd(TokenIter head, TokenIter tail, CompileError::List & errors)
+    {
+        if (head == tail)
+            return true;
+        errors.push_back({
+            CompileErrorType::Parser_CanNotParseLeftToken,
+            *head,
+            "can't parse the left token in this line"
+        });
+        return false;
+    }
+
+    ParseLineHelper GenParseLineHelper(LineIter & head, LineIter tail, CompileError::List & errors)
+    {
+        // we have to copy tail because tail will no longer be alive after this function finish
+        auto helper = [&head, tail, &errors](ParseLineFunc & parseFunc){
+            if (CheckEndOfFile(head, tail, errors))
+                return false;
+            auto tokenIt = (*head)->tokens.begin();
+            auto tokenEnd = (*head)->tokens.end();
+            if (CheckReachTheEnd(tokenIt, tokenEnd, errors))
+                return false;
+
+            if (!parseFunc(tokenIt, tokenEnd))
+                return false;
+
+            // just check and give errors message, go on even if error was raised
+            CheckParseToLineEnd(tokenIt, tokenEnd, errors);
+            ++head;
+            return true;
+        };
+        return helper;
+    }
+
+    // for lines
     bool CheckEndOfFile(LineIter head, LineIter tail, CompileError::List & errors)
     {
         if (head != tail)

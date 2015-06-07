@@ -19,6 +19,8 @@ namespace minimoe
         Parser_NotOneElementListShouldNotEndWithComma,
 
         Parser_NoMoreLine,
+        Parser_VarNotInit,
+        Parser_CanNotParseLeftToken,
     };
 }
 

@@ -24,9 +24,52 @@ namespace minimoe
         string name = (*tokenIt)->value;
         if (!CheckSingleTokenType(tokenIt, tokenEnd, CodeTokenType::Identifier, errors))
             return nullptr;
+        // just check and give errors message, go on even if error was raised
+        CheckParseToLineEnd(tokenIt, tokenEnd, errors);
         auto tag = std::make_shared<TagDeclaration>();
         tag->name = name;
         return tag;
+    }
+
+    TypeDeclaration::Ptr TypeDeclaration::Parse(LineIter & head, LineIter tail, CompileError::List & errors)
+    {
+        auto type = std::make_shared<TypeDeclaration>();
+
+        ParseLineFunc GetName = [&](TokenIter & tokenIt, TokenIter tokenEnd){
+            if (!CheckSingleTokenType(tokenIt, tokenEnd, CodeTokenType::Type, errors))
+                return false;
+            string name = (*tokenIt)->value;
+            if (!CheckSingleTokenType(tokenIt, tokenEnd, CodeTokenType::Identifier, errors))
+                return false;
+            type->name = name;
+            return true;
+        };
+
+        bool ended = false;
+        ParseLineFunc GetMember = [&](TokenIter & tokenIt, TokenIter tokenEnd){
+            if ((*tokenIt)->type == CodeTokenType::End)
+            {
+                ++tokenIt;
+                ended = true;
+                return true;
+            }
+            string member = (*tokenIt)->value;
+            if (!CheckSingleTokenType(tokenIt, tokenEnd, CodeTokenType::Identifier, errors))
+                return false;
+            type->members.push_back(member);
+            return true;
+        };
+
+        auto helper = GenParseLineHelper(head, tail, errors);
+
+        if (!helper(GetName))
+            return nullptr;
+        while (!ended)
+        {
+            if (!helper(GetMember))
+                return nullptr;
+        }
+        return type;
     }
 
     /****************
@@ -34,7 +77,13 @@ namespace minimoe
     ****************/
     std::string TypeDeclaration::ToLog()
     {
-        return "not implemented";
+        string s = "Type(" + name;
+        for (auto & mem : members)
+        {
+            s += (", " + mem);
+        }
+        s += ")";
+        return s;
     }
 
     std::string TagDeclaration::ToLog()

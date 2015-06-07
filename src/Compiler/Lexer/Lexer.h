@@ -31,6 +31,7 @@ namespace minimoe
         Assignable,
         List,
 
+        Var,
         End,
 
         OpenSquareBracket,  // [

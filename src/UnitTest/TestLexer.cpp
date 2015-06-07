@@ -384,50 +384,60 @@ void testString()
 
 void testIdentifier()
 {
-    string code = 
+    {
+        string code = "ident ident2 _233";
+        FIRST_LINE(code, 1);
+        FIRST_TOKEN(3);
+        TOKEN(1, 1, "ident", CodeTokenType::Identifier);
+        TOKEN(1, 7, "ident2", CodeTokenType::Identifier);
+        TOKEN(1, 14, "_233", CodeTokenType::Identifier);
+        LAST_TOKEN;
+        NEXT_LINE;
+        LAST_LINE;
+
+        BEGIN_CHECK_ERROR(0);
+        END_CHECK_ERROR;
+    }
+    {
+        string code =
         "module using phrase sentence block type\n"
         "cps category expression deferred argument assignable list\n"
         "end and or not\n"
-        "UserDefinedIdentifier "
         ;
-    FIRST_LINE(code, 4);
-    FIRST_TOKEN(6);
-    TOKEN(1, 1, "module", CodeTokenType::Module);
-    TOKEN(1, 8, "using", CodeTokenType::Using);
-    TOKEN(1, 14, "phrase", CodeTokenType::Phrase);
-    TOKEN(1, 21, "sentence", CodeTokenType::Sentence);
-    TOKEN(1, 30, "block", CodeTokenType::Block);
-    TOKEN(1, 36, "type", CodeTokenType::Type);
-    LAST_TOKEN;
-    NEXT_LINE;
+        FIRST_LINE(code, 3);
+        FIRST_TOKEN(6);
+        TOKEN(1, 1, "module", CodeTokenType::Module);
+        TOKEN(1, 8, "using", CodeTokenType::Using);
+        TOKEN(1, 14, "phrase", CodeTokenType::Phrase);
+        TOKEN(1, 21, "sentence", CodeTokenType::Sentence);
+        TOKEN(1, 30, "block", CodeTokenType::Block);
+        TOKEN(1, 36, "type", CodeTokenType::Type);
+        LAST_TOKEN;
+        NEXT_LINE;
 
-    FIRST_TOKEN(7);
-    TOKEN(2, 1, "cps", CodeTokenType::CPS);
-    TOKEN(2, 5, "category", CodeTokenType::Category);
-    TOKEN(2, 14, "expression", CodeTokenType::Identifier);
-    TOKEN(2, 25, "deferred", CodeTokenType::Deferred);
-    TOKEN(2, 34, "argument", CodeTokenType::Argument);
-    TOKEN(2, 43, "assignable", CodeTokenType::Assignable);
-    TOKEN(2, 54, "list", CodeTokenType::List);
-    LAST_TOKEN;
-    NEXT_LINE;
+        FIRST_TOKEN(7);
+        TOKEN(2, 1, "cps", CodeTokenType::CPS);
+        TOKEN(2, 5, "category", CodeTokenType::Category);
+        TOKEN(2, 14, "expression", CodeTokenType::Identifier);
+        TOKEN(2, 25, "deferred", CodeTokenType::Deferred);
+        TOKEN(2, 34, "argument", CodeTokenType::Argument);
+        TOKEN(2, 43, "assignable", CodeTokenType::Assignable);
+        TOKEN(2, 54, "list", CodeTokenType::List);
+        LAST_TOKEN;
+        NEXT_LINE;
 
-    FIRST_TOKEN(4);
-    TOKEN(3, 1, "end", CodeTokenType::End);
-    TOKEN(3, 5, "and", CodeTokenType::And);
-    TOKEN(3, 9, "or", CodeTokenType::Or);
-    TOKEN(3, 12, "not", CodeTokenType::Not);
-    LAST_TOKEN;
-    NEXT_LINE;
+        FIRST_TOKEN(4);
+        TOKEN(3, 1, "end", CodeTokenType::End);
+        TOKEN(3, 5, "and", CodeTokenType::And);
+        TOKEN(3, 9, "or", CodeTokenType::Or);
+        TOKEN(3, 12, "not", CodeTokenType::Not);
+        LAST_TOKEN;
+        NEXT_LINE;
+        LAST_LINE;
 
-    FIRST_TOKEN(1);
-    TOKEN(4, 1, "UserDefinedIdentifier", CodeTokenType::Identifier);
-    LAST_TOKEN;
-    NEXT_LINE;
-    LAST_LINE;
-
-    BEGIN_CHECK_ERROR(0);
-    END_CHECK_ERROR;
+        BEGIN_CHECK_ERROR(0);
+        END_CHECK_ERROR;
+    }
 }
 
 void testComment()

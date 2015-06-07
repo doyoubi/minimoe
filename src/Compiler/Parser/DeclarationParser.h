@@ -27,6 +27,8 @@ namespace minimoe
         std::vector<std::string> members;
 
         std::string ToLog() override;
+
+        static Ptr Parse(LineIter & head, LineIter tail, CompileError::List & errors);
     };
 
     class TagDeclaration : public Declaration

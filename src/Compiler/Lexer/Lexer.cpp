@@ -50,6 +50,7 @@ namespace minimoe
             type == CodeTokenType::Tag ? "Tag" :
             type == CodeTokenType::Type ? "Type" :
             type == CodeTokenType::Using ? "using" :
+            type == CodeTokenType::Var ? "var" :
             ERRORMSG("invalid CodeTokenType"), "UnKnown";
     }
 
@@ -101,6 +102,7 @@ namespace minimoe
                     value == "or" ? CodeTokenType::Or :
                     value == "not" ? CodeTokenType::Not :
                     value == "tag" ? CodeTokenType::Tag :
+                    value == "var" ? CodeTokenType::Var :
                     CodeTokenType::Identifier;
             }
             else if (type == CodeTokenType::StringLiteral)
@@ -258,7 +260,7 @@ namespace minimoe
                 }
                 break;
             case State::InIdentifier:
-                if ('a' <= c && c <= 'z' || 'A' <= c && c <= 'Z' || c == '_')
+                if ('a' <= c && c <= 'z' || 'A' <= c && c <= 'Z' || c == '_' || '0' <= c && c <= '9')
                 {
                     // go on
                 }
