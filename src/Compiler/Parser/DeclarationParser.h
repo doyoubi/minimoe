@@ -53,9 +53,11 @@ namespace minimoe
     {
         Normal,         // a normal function argument
         List,           // a tuple marshalled as array
-        Argument,       // for block only, represents an argument to the block body
+        BlockBody,       // for block only, represents an argument to the block body
         Deferred,       // for sentence and block only, represnets a re-evaluable expression
         Assignable,     // for sentence and block only, represnets a assignable expression
+
+        UnKnown,
     };
 
     enum class FunctionFragmentType
@@ -81,8 +83,11 @@ namespace minimoe
         typedef std::vector<Ptr> List;
 
         FunctionArgumentType type;
+        std::string name;
 
         std::string ToLog() override;
+
+        static Ptr Parse(TokenIter & head, TokenIter tail, CompileError::List & errors);
     };
 
     class FunctionDeclaration : public Declaration

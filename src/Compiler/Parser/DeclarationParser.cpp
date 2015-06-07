@@ -71,6 +71,43 @@ namespace minimoe
         return type;
     }
 
+    ArgumentDeclaration::Ptr ArgumentDeclaration::Parse(TokenIter & head, TokenIter tail, CompileError::List & errors)
+    {
+        if (!CheckSingleTokenType(head, tail, CodeTokenType::OpenBracket, errors))
+            return nullptr;
+        auto arg = std::make_shared<ArgumentDeclaration>();
+        auto token = *head;
+        if (token->type != CodeTokenType::Identifier)
+        {
+            arg->type =
+                token->type == CodeTokenType::List ? FunctionArgumentType::List :
+                token->type == CodeTokenType::BlockBody ? FunctionArgumentType::BlockBody :
+                token->type == CodeTokenType::Deferred ? FunctionArgumentType::Deferred :
+                token->type == CodeTokenType::Assignable ? FunctionArgumentType::Assignable :
+                FunctionArgumentType::UnKnown;
+            if (arg->type == FunctionArgumentType::UnKnown)
+            {
+                errors.push_back({
+                    CompileErrorType::Parser_InvalidArgumentDeclaration,
+                    token,
+                    "argument should be a single identifier or with a qualifier"
+                });
+                return nullptr;
+            }
+            ++head;
+        }
+        else
+        {
+            arg->type = FunctionArgumentType::Normal;
+        }
+        arg->name = (*head)->value;
+        if (!CheckSingleTokenType(head, tail, CodeTokenType::Identifier, errors))
+            return nullptr;
+        if (!CheckSingleTokenType(head, tail, CodeTokenType::CloseBracket, errors))
+            return nullptr;
+        return arg;
+    }
+
     /****************
     ToLog
     ****************/
@@ -90,9 +127,24 @@ namespace minimoe
         return "Tag(" + name + ")";
     }
 
+    string ArgumentTypeToString(FunctionArgumentType type)
+    {
+        return
+            type == FunctionArgumentType::Assignable ? "Assignable" :
+            type == FunctionArgumentType::BlockBody ? "BlockBody" :
+            type == FunctionArgumentType::Deferred ? "Deferred" :
+            type == FunctionArgumentType::List ? "List" :
+            type == FunctionArgumentType::Normal ? "Normal" :
+            (ERRORMSG("invali FunctionArgumentType"), "invalid");
+    }
+
     std::string ArgumentDeclaration::ToLog()
     {
-        return "not implemented";
+        string s = ArgumentTypeToString(type);
+        s += "(";
+        s += name;
+        s += ")";
+        return s;
     }
 
     std::string FunctionDeclaration::ToLog()

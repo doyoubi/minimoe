@@ -12,7 +12,7 @@ namespace minimoe
         return
             type == CodeTokenType::Add ? "+" :
             type == CodeTokenType::And ? "and" :
-            type == CodeTokenType::Argument ? "argument" :
+            type == CodeTokenType::BlockBody ? "blockbody" :
             type == CodeTokenType::Assign ? "=" :
             type == CodeTokenType::Assignable ? "assignable" :
             type == CodeTokenType::Block ? "block" :
@@ -94,7 +94,7 @@ namespace minimoe
                     value == "cps" ? CodeTokenType::CPS :
                     value == "category" ? CodeTokenType::Category :
                     value == "deferred" ? CodeTokenType::Deferred :
-                    value == "argument" ? CodeTokenType::Argument :
+                    value == "blockbody" ? CodeTokenType::BlockBody :
                     value == "assignable" ? CodeTokenType::Assignable :
                     value == "list" ? CodeTokenType::List :
                     value == "end" ? CodeTokenType::End :

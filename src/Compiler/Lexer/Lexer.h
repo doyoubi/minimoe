@@ -27,7 +27,7 @@ namespace minimoe
         CPS,
         Category,
         Deferred,
-        Argument,
+        BlockBody,
         Assignable,
         List,
 

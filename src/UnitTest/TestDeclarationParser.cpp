@@ -79,9 +79,50 @@ void TestType()
     }
 }
 
+void TestArgument()
+{
+    {
+        string code = "(arg1)";
+        CompileError::List errors;
+        auto codeFile = CodeFile::Parse(code);
+        TEST_ASSERT(errors.empty());
+        TEST_ASSERT(codeFile->lines.size() == 1);
+        auto tokens = codeFile->lines.front()->tokens;
+        auto arg = ArgumentDeclaration::Parse(tokens.begin(), tokens.end(), errors);
+        TEST_ASSERT(arg != nullptr);
+        TEST_ASSERT(errors.empty());
+        TEST_ASSERT(arg->ToLog() == "Normal(arg1)");
+    }
+    {
+        string code = "(blockbody arg1)";
+        CompileError::List errors;
+        auto codeFile = CodeFile::Parse(code);
+        TEST_ASSERT(errors.empty());
+        TEST_ASSERT(codeFile->lines.size() == 1);
+        auto tokens = codeFile->lines.front()->tokens;
+        auto arg = ArgumentDeclaration::Parse(tokens.begin(), tokens.end(), errors);
+        TEST_ASSERT(arg != nullptr);
+        TEST_ASSERT(errors.empty());
+        TEST_ASSERT(arg->ToLog() == "BlockBody(arg1)");
+    }
+    {
+        string code = "(2333 arg2)";
+        CompileError::List errors;
+        auto codeFile = CodeFile::Parse(code);
+        TEST_ASSERT(errors.empty());
+        TEST_ASSERT(codeFile->lines.size() == 1);
+        auto tokens = codeFile->lines.front()->tokens;
+        auto arg = ArgumentDeclaration::Parse(tokens.begin(), tokens.end(), errors);
+        TEST_ASSERT(arg == nullptr);
+        TEST_ASSERT(errors.size() == 1);
+        TEST_ASSERT(errors.front().errorType == CompileErrorType::Parser_InvalidArgumentDeclaration);
+    }
+}
+
 void InvokeDeclarationParserTest()
 {
     TestTag();
     TestType();
+    TestArgument();
     std::cout << "Declaration Parser Test Complete" << std::endl;
 }

@@ -401,7 +401,7 @@ void testIdentifier()
     {
         string code =
         "module using phrase sentence block type\n"
-        "cps category expression deferred argument assignable list\n"
+        "cps category expression deferred blockbody assignable list\n"
         "end and or not\n"
         ;
         FIRST_LINE(code, 3);
@@ -420,9 +420,9 @@ void testIdentifier()
         TOKEN(2, 5, "category", CodeTokenType::Category);
         TOKEN(2, 14, "expression", CodeTokenType::Identifier);
         TOKEN(2, 25, "deferred", CodeTokenType::Deferred);
-        TOKEN(2, 34, "argument", CodeTokenType::Argument);
-        TOKEN(2, 43, "assignable", CodeTokenType::Assignable);
-        TOKEN(2, 54, "list", CodeTokenType::List);
+        TOKEN(2, 34, "blockbody", CodeTokenType::BlockBody);
+        TOKEN(2, 44, "assignable", CodeTokenType::Assignable);
+        TOKEN(2, 55, "list", CodeTokenType::List);
         LAST_TOKEN;
         NEXT_LINE;
 
