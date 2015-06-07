@@ -13,19 +13,18 @@ namespace minimoe
     **********************/
     TagDeclaration::Ptr TagDeclaration::Parse(LineIter & head, LineIter tail, CompileError::List & errors)
     {
-        if (CheckEndOfFile(head, tail, errors))
+        string name;
+        ParseLineFunc GetName = [&](TokenIter & tokenIt, TokenIter tokenEnd){
+            if (!CheckSingleTokenType(tokenIt, tokenEnd, CodeTokenType::Tag, errors))
+                return false;
+            name = (*tokenIt)->value;
+            if (!CheckSingleTokenType(tokenIt, tokenEnd, CodeTokenType::Identifier, errors))
+                return false;
+            return true;
+        };
+        auto helper = GenParseLineHelper(head, tail, errors);
+        if (!helper(GetName))
             return nullptr;
-        auto tokenIt = (*head)->tokens.begin();
-        auto tokenEnd = (*head)->tokens.end();
-        if (CheckReachTheEnd(tokenIt, tokenEnd, errors))
-            return nullptr;
-        if (!CheckSingleTokenType(tokenIt, tokenEnd, CodeTokenType::Tag, errors))
-            return nullptr;
-        string name = (*tokenIt)->value;
-        if (!CheckSingleTokenType(tokenIt, tokenEnd, CodeTokenType::Identifier, errors))
-            return nullptr;
-        // just check and give errors message, go on even if error was raised
-        CheckParseToLineEnd(tokenIt, tokenEnd, errors);
         auto tag = std::make_shared<TagDeclaration>();
         tag->name = name;
         return tag;

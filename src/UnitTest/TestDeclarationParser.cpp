@@ -20,6 +20,18 @@ void TestTag()
         TEST_ASSERT(tag->ToLog() == "Tag(MyTag)");
         TEST_ASSERT(errors.empty());
     }
+    {
+        string code =
+            "tag MyTag doyoubi\n";
+        CompileError::List errors;
+        auto codeFile = CodeFile::Parse(code);
+        TEST_ASSERT(errors.empty());
+        auto tag = TagDeclaration::Parse(codeFile->lines.begin(), codeFile->lines.end(), errors);
+        TEST_ASSERT(tag != nullptr);
+        TEST_ASSERT(tag->ToLog() == "Tag(MyTag)");
+        TEST_ASSERT(errors.size() == 1);
+        TEST_ASSERT(errors.front().errorType == CompileErrorType::Parser_CanNotParseLeftToken);
+    }
 }
 
 void TestType()
