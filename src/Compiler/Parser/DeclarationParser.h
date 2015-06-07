@@ -47,6 +47,8 @@ namespace minimoe
         Phrase,     // expression, cannot be an statement
         Sentence,   // statement
         Block,      // block statement
+
+        UnKnown,
     };
 
     enum class FunctionArgumentType
@@ -99,12 +101,18 @@ namespace minimoe
         FunctionFragment::List fragments;
         FunctionType type;
         ArgumentDeclaration::List arguments;
+        std::string alias;
+
+        LineIter startIter;
+        LineIter endIter;
 
         std::string ToLog() override;
 
         static Ptr Make(FunctionType type);
         FunctionDeclaration::Ptr name(std::string s);
         FunctionDeclaration::Ptr arg(FunctionArgumentType type, std::string s);
+
+        static Ptr Parse(LineIter & head, LineIter tail, CompileError::List & errors);
     };
 
     enum class Type

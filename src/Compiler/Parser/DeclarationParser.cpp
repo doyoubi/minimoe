@@ -17,6 +17,8 @@ namespace minimoe
         ParseLineFunc GetName = [&](TokenIter & tokenIt, TokenIter tokenEnd){
             if (!CheckSingleTokenType(tokenIt, tokenEnd, CodeTokenType::Tag, errors))
                 return false;
+            if (CheckReachTheEnd(tokenIt, tokenEnd, errors))
+                return false;
             name = (*tokenIt)->value;
             if (!CheckSingleTokenType(tokenIt, tokenEnd, CodeTokenType::Identifier, errors))
                 return false;
@@ -36,6 +38,8 @@ namespace minimoe
 
         ParseLineFunc GetName = [&](TokenIter & tokenIt, TokenIter tokenEnd){
             if (!CheckSingleTokenType(tokenIt, tokenEnd, CodeTokenType::Type, errors))
+                return false;
+            if (CheckReachTheEnd(tokenIt, tokenEnd, errors))
                 return false;
             string name = (*tokenIt)->value;
             if (!CheckSingleTokenType(tokenIt, tokenEnd, CodeTokenType::Identifier, errors))
@@ -108,6 +112,111 @@ namespace minimoe
         return arg;
     }
 
+    bool NewDeclaration(CodeTokenType type)
+    {
+        return type == CodeTokenType::Phrase
+            || type == CodeTokenType::Sentence
+            || type == CodeTokenType::Block
+            || type == CodeTokenType::Tag
+            || type == CodeTokenType::Type
+            || type == CodeTokenType::Module
+            || type == CodeTokenType::Using
+            || type == CodeTokenType::CPS
+            || type == CodeTokenType::Category;
+    }
+
+    FunctionDeclaration::Ptr FunctionDeclaration::Parse(
+        LineIter & head, LineIter tail, CompileError::List & errors)
+    {
+        auto func = std::make_shared<FunctionDeclaration>();
+
+        ParseLineFunc ParseFirstLine = [&](TokenIter & tokenIt, TokenIter tokenEnd){
+            auto token = *tokenIt;
+            FunctionType type =
+                token->type == CodeTokenType::Phrase ? FunctionType::Phrase :
+                token->type == CodeTokenType::Sentence ? FunctionType::Sentence :
+                token->type == CodeTokenType::Block ? FunctionType::Block :
+                FunctionType::UnKnown;
+            if (type == FunctionType::UnKnown)
+                return false;
+            func->type = type;
+            ++tokenIt;
+
+            if (CheckReachTheEnd(tokenIt, tokenEnd, errors))
+                return false;
+
+            // parse function fragment
+            while (true)
+            {
+                auto & tk = *tokenIt;
+                auto fragment = std::make_shared<FunctionFragment>();
+                if (tk->type == CodeTokenType::OpenBracket)
+                {
+                    auto decl = ArgumentDeclaration::Parse(tokenIt, tokenEnd, errors);
+                    fragment->name = decl->name;
+                    fragment->type = FunctionFragmentType::Argument;
+                    func->arguments.push_back(decl);
+                }
+                else
+                {
+                    fragment->name = tk->value;
+                    if (!CheckSingleTokenType(tokenIt, tokenEnd, CodeTokenType::Identifier, errors))
+                        return false;
+                    fragment->type = FunctionFragmentType::Name;
+                }
+                func->fragments.push_back(fragment);
+                if (tokenIt == tokenEnd)
+                    return true;
+                if ((*tokenIt)->type == CodeTokenType::Colon)
+                {
+                    ++tokenIt;
+                    func->alias = (*tokenIt)->value;
+                    if (!CheckSingleTokenType(tokenIt, tokenEnd, CodeTokenType::Identifier, errors))
+                        return false;
+                    return true;
+                }
+            }
+            return true;
+        };
+
+        auto helper = GenParseLineHelper(head, tail, errors);
+        if (!helper(ParseFirstLine))
+            return nullptr;
+
+        auto it = head;
+        func->startIter = head;
+        while (it != tail
+           && (DEBUGCHECK(!(*it)->tokens.empty()), !NewDeclaration((*it)->tokens.front()->type)))
+        {
+            ++it;
+        }
+        auto blockEnd = it;
+
+        for (it = head; it != blockEnd; ++it)
+        {
+            auto tokens = (*it)->tokens;
+            DEBUGCHECK(!tokens.empty());
+            if (tokens.front()->type == CodeTokenType::End)
+            {
+                CheckParseToLineEnd(std::next(tokens.begin()), tokens.end(), errors);
+                break;
+            }
+        }
+        if (it == blockEnd)
+        {
+            errors.push_back({
+                CompileErrorType::Parser_ExpectEndForFunctionDeclaration,
+                (*head)->tokens.front(),
+                "function declaration should be end with \"end\""
+            });
+            return nullptr;
+        }
+        else func->endIter = it;
+
+        return func;
+    }
+
+
     /****************
     ToLog
     ****************/
@@ -147,6 +256,15 @@ namespace minimoe
         return s;
     }
 
+    std::string FunctionTypeToString(FunctionType type)
+    {
+        return
+            type == FunctionType::Phrase ? "Phrase" :
+            type == FunctionType::Sentence ? "Sentence" :
+            type == FunctionType::Block ? "Block" :
+            (ERRORMSG("invalid FunctionType"), "invalid");
+    }
+
     std::string FunctionDeclaration::ToLog()
     {
         string name, argument;
@@ -164,7 +282,10 @@ namespace minimoe
             }
             else ERRORMSG("invalid enum");
         }
-        return name + "(" + argument + ")";
+        string s = FunctionTypeToString(type) + ":" + name + "(" + argument + ")";
+        size_t lines = std::distance(startIter, endIter);
+        s += "{" + std::to_string(lines) + "}";
+        return s;
     }
 
     std::string VariableDeclaration::ToLog()
@@ -172,7 +293,7 @@ namespace minimoe
         return "not implemented";
     }
 
-    // FunctionDeclaration
+    // FunctionDeclaration helper function
     FunctionDeclaration::Ptr FunctionDeclaration::Make(FunctionType type)
     {
         auto func = std::make_shared<FunctionDeclaration>();

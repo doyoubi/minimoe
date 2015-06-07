@@ -22,6 +22,7 @@ namespace minimoe
         Parser_VarNotInit,
         Parser_CanNotParseLeftToken,
         Parser_InvalidArgumentDeclaration,
+        Parser_ExpectEndForFunctionDeclaration,
     };
 }
 

@@ -32,6 +32,17 @@ void TestTag()
         TEST_ASSERT(errors.size() == 1);
         TEST_ASSERT(errors.front().errorType == CompileErrorType::Parser_CanNotParseLeftToken);
     }
+    {
+        string code =
+            "tag\n";
+        CompileError::List errors;
+        auto codeFile = CodeFile::Parse(code);
+        TEST_ASSERT(errors.empty());
+        auto tag = TagDeclaration::Parse(codeFile->lines.begin(), codeFile->lines.end(), errors);
+        TEST_ASSERT(tag == nullptr);
+        TEST_ASSERT(errors.size() == 1);
+        TEST_ASSERT(errors.front().errorType == CompileErrorType::Parser_NoMoreToken);
+    }
 }
 
 void TestType()
@@ -77,6 +88,18 @@ void TestType()
         TEST_ASSERT(errors.front().errorType == CompileErrorType::Parser_CanNotParseLeftToken);
         TEST_ASSERT(errors.front().token->row == 1);
     }
+    {
+        string code =
+            "type\n"
+            "end";
+        CompileError::List errors;
+        auto codeFile = CodeFile::Parse(code);
+        TEST_ASSERT(errors.empty());
+        auto type = TypeDeclaration::Parse(codeFile->lines.begin(), codeFile->lines.end(), errors);
+        TEST_ASSERT(type == nullptr);
+        TEST_ASSERT(errors.size() == 1);
+        TEST_ASSERT(errors.front().errorType == CompileErrorType::Parser_NoMoreToken);
+    }
 }
 
 void TestArgument()
@@ -119,10 +142,57 @@ void TestArgument()
     }
 }
 
+void TestFunctionDeclaration()
+{
+    {
+        string code =
+        "block print\n"
+        "end\n";
+        CompileError::List errors;
+        auto codeFile = CodeFile::Parse(code);
+        TEST_ASSERT(errors.empty());
+        auto func = FunctionDeclaration::Parse(codeFile->lines.begin(), codeFile->lines.end(), errors);
+        TEST_ASSERT(func != nullptr);
+        TEST_ASSERT(errors.empty());
+        TEST_ASSERT(func->ToLog() == "Block:print(){0}");
+        TEST_ASSERT(func->startIter == std::next(codeFile->lines.begin()));
+    }
+    {
+        string code =
+            "phrase SumFrom(low)To(high) : SumFrom\n"
+            "    result = 1\n"
+            "end\n"
+            "Tag t";
+        CompileError::List errors;
+        auto codeFile = CodeFile::Parse(code);
+        TEST_ASSERT(errors.empty());
+        auto func = FunctionDeclaration::Parse(codeFile->lines.begin(), codeFile->lines.end(), errors);
+        TEST_ASSERT(func != nullptr);
+        TEST_ASSERT(errors.empty());
+        TEST_ASSERT(func->ToLog() == "Phrase:SumFrom_To(low, high){1}");
+        TEST_ASSERT(func->alias == "SumFrom");
+        TEST_ASSERT(func->startIter == std::next(codeFile->lines.begin()));
+    }
+    {
+        string code =
+            "sentence echo\n"
+            "    print(doyoubi)\n"
+            "Tag t";
+        CompileError::List errors;
+        auto codeFile = CodeFile::Parse(code);
+        TEST_ASSERT(errors.empty());
+        auto func = FunctionDeclaration::Parse(codeFile->lines.begin(), codeFile->lines.end(), errors);
+        TEST_ASSERT(func == nullptr);
+        TEST_ASSERT(errors.size() == 1);
+        TEST_ASSERT(errors.front().errorType == CompileErrorType::Parser_ExpectEndForFunctionDeclaration);
+    }
+}
+
 void InvokeDeclarationParserTest()
 {
     TestTag();
     TestType();
     TestArgument();
+    TestFunctionDeclaration();
     std::cout << "Declaration Parser Test Complete" << std::endl;
 }
