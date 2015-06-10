@@ -11,11 +11,11 @@ namespace minimoe
     /***********************
     Parse
     **********************/
-    TagDeclaration::Ptr TagDeclaration::Parse(LineIter & head, LineIter tail, CompileError::List & errors)
+    std::string ParseName(LineIter & head, LineIter tail, CodeTokenType HeadTokenType, CompileError::List & errors)
     {
         string name;
         ParseLineFunc GetName = [&](TokenIter & tokenIt, TokenIter tokenEnd){
-            if (!CheckSingleTokenType(tokenIt, tokenEnd, CodeTokenType::Tag, errors))
+            if (!CheckSingleTokenType(tokenIt, tokenEnd, HeadTokenType, errors))
                 return false;
             if (CheckReachTheEnd(tokenIt, tokenEnd, errors))
                 return false;
@@ -26,7 +26,23 @@ namespace minimoe
         };
         auto helper = GenParseLineHelper(head, tail, errors);
         if (!helper(GetName))
-            return nullptr;
+            return "";
+        return name;
+    }
+
+    UsingDeclaration::Ptr UsingDeclaration::Parse(LineIter & head, LineIter tail, CompileError::List & errors)
+    {
+        std::string name = ParseName(head, tail, CodeTokenType::Using, errors);
+        if (name.empty()) return nullptr;
+        auto usi = std::make_shared<UsingDeclaration>();
+        usi->moduleName = name;
+        return usi;
+    }
+
+    TagDeclaration::Ptr TagDeclaration::Parse(LineIter & head, LineIter tail, CompileError::List & errors)
+    {
+        string name = ParseName(head, tail, CodeTokenType::Tag, errors);
+        if (name.empty()) return nullptr;
         auto tag = std::make_shared<TagDeclaration>();
         tag->name = name;
         return tag;
@@ -211,15 +227,79 @@ namespace minimoe
             });
             return nullptr;
         }
-        else func->endIter = it;
+        func->endIter = it;
+        head = std::next(it);
 
         return func;
     }
 
+    Module::Ptr Module::Parse(const CodeFile::Ptr codeFile, CompileError::List & errors)
+    {
+        auto module = std::make_shared<Module>();
+        auto it = codeFile->lines.begin();
+        auto itEnd = codeFile->lines.end();
+        while(it != itEnd)
+        {
+            auto line = *it;
+            CodeTokenType type = (*line->tokens.begin())->type;
+            switch (type)
+            {
+            case minimoe::CodeTokenType::Module:
+                module->name = ParseModuleName(it, itEnd, errors);
+                break;
+            case minimoe::CodeTokenType::Using:
+            {
+                auto usi = UsingDeclaration::Parse(it, itEnd, errors);
+                if (usi) module->usings.push_back(usi);
+                break;
+            }
+            case minimoe::CodeTokenType::CPS:
+                ERRORMSG("not implemented");
+                break;
+            case minimoe::CodeTokenType::Category:
+                ERRORMSG("not implemented");
+                break;
+            case minimoe::CodeTokenType::Phrase:
+            case minimoe::CodeTokenType::Sentence:
+            case minimoe::CodeTokenType::Block:
+            {
+                auto func = FunctionDeclaration::Parse(it, itEnd, errors);
+                if (func) module->functions.push_back(func);
+                break;
+            }
+            case minimoe::CodeTokenType::Type:
+            {
+                auto type = TypeDeclaration::Parse(it, itEnd, errors);
+                if (type) module->types.push_back(type);
+                break;
+            }
+            case minimoe::CodeTokenType::Tag:
+            {
+                auto tag = TagDeclaration::Parse(it, itEnd, errors);
+                if (tag) module->tags.push_back(tag);
+                break;
+            }
+            default:
+                break;
+            }
+        }
+        return module;
+    }
+
+    string Module::ParseModuleName(LineIter & head, LineIter tail, CompileError::List & errors)
+    {
+        return ParseName(head, tail, CodeTokenType::Module, errors);
+    }
 
     /****************
     ToLog
     ****************/
+    std::string UsingDeclaration::ToLog()
+    {
+        string s = "Using(" + moduleName + ")";
+        return s;
+    }
+
     std::string TypeDeclaration::ToLog()
     {
         string s = "Type(" + name;

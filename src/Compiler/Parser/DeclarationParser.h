@@ -18,6 +18,19 @@ namespace minimoe
         virtual std::string ToLog() = 0;
     };
 
+    class UsingDeclaration : public  Declaration
+    {
+    public:
+        typedef std::shared_ptr<Declaration> Ptr;
+        typedef std::vector<Ptr> List;
+
+        std::string moduleName;
+
+        std::string ToLog() override;
+
+        static Ptr Parse(LineIter & head, LineIter tail, CompileError::List & errors);
+    };
+
     class TypeDeclaration : public Declaration
     {
     public:
@@ -145,6 +158,24 @@ namespace minimoe
         Keyword builtInValue; // true, false, null
     };
 
+    /*****************
+    Module
+    *****************/
+    class Module
+    {
+    public:
+        typedef std::shared_ptr<Module> Ptr;
+        typedef std::vector<Ptr> List;
+
+        std::string name;
+        UsingDeclaration::List usings;
+        TypeDeclaration::List types;
+        TagDeclaration::List tags;
+        FunctionDeclaration::List functions;
+
+        static Ptr Parse(const CodeFile::Ptr codeFile, CompileError::List & errors);
+        static std::string ParseModuleName(LineIter & head, LineIter tail, CompileError::List & errors);
+    };
 }
 
 #endif

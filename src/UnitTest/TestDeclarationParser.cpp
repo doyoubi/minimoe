@@ -162,17 +162,22 @@ void TestFunctionDeclaration()
             "phrase SumFrom(low)To(high) : SumFrom\n"
             "    result = 1\n"
             "end\n"
-            "Tag t";
+            "tag t";
         CompileError::List errors;
         auto codeFile = CodeFile::Parse(code);
+        auto it = codeFile->lines.begin();
         TEST_ASSERT(errors.empty());
-        auto func = FunctionDeclaration::Parse(codeFile->lines.begin(), codeFile->lines.end(), errors);
+        auto func = FunctionDeclaration::Parse(it, codeFile->lines.end(), errors);
         TEST_ASSERT(func != nullptr);
         TEST_ASSERT(errors.empty());
         TEST_ASSERT(func->ToLog() == "Phrase:SumFrom_To(low, high){1}");
         TEST_ASSERT(func->alias == "SumFrom");
         TEST_ASSERT(func->startIter == std::next(codeFile->lines.begin()));
-    }
+        auto tag = TagDeclaration::Parse(it, codeFile->lines.end(), errors);
+        TEST_ASSERT(tag != nullptr);
+        TEST_ASSERT(errors.empty());
+        TEST_ASSERT(tag->ToLog() == "Tag(t)");
+}
     {
         string code =
             "sentence echo\n"
@@ -188,11 +193,85 @@ void TestFunctionDeclaration()
     }
 }
 
+void TestUsing()
+{
+    {
+        string code =
+            "using std\n";
+        CompileError::List errors;
+        auto codeFile = CodeFile::Parse(code);
+        TEST_ASSERT(errors.empty());
+        auto usi = UsingDeclaration::Parse(codeFile->lines.begin(), codeFile->lines.end(), errors);
+        TEST_ASSERT(usi != nullptr);
+        TEST_ASSERT(usi->ToLog() == "Using(std)");
+        TEST_ASSERT(errors.empty());
+    }
+    {
+        string code =
+            "using std doyoubi\n";
+        CompileError::List errors;
+        auto codeFile = CodeFile::Parse(code);
+        TEST_ASSERT(errors.empty());
+        auto usi = UsingDeclaration::Parse(codeFile->lines.begin(), codeFile->lines.end(), errors);
+        TEST_ASSERT(usi != nullptr);
+        TEST_ASSERT(usi->ToLog() == "Using(std)");
+        TEST_ASSERT(errors.size() == 1);
+        TEST_ASSERT(errors.front().errorType == CompileErrorType::Parser_CanNotParseLeftToken);
+    }
+    {
+        string code =
+            "using\n";
+        CompileError::List errors;
+        auto codeFile = CodeFile::Parse(code);
+        TEST_ASSERT(errors.empty());
+        auto usi = UsingDeclaration::Parse(codeFile->lines.begin(), codeFile->lines.end(), errors);
+        TEST_ASSERT(usi == nullptr);
+        TEST_ASSERT(errors.size() == 1);
+        TEST_ASSERT(errors.front().errorType == CompileErrorType::Parser_NoMoreToken);
+    }
+}
+
+void TestModule()
+{
+    {
+        string code =
+        "module doyoubi\n"
+        "using std\n"
+        "using math\n"
+        "\n"
+        "tag mytag\n"
+        "type mytype\n"
+        "end\n"
+        "\n"
+        "sentence print(message)\n"
+        "   RedirectTo(\"print\")\n"
+        "end\n"
+        "\n"
+            ;
+        CompileError::List errors;
+        auto codeFile = CodeFile::Parse(code);
+        TEST_ASSERT(errors.empty());
+        auto module = Module::Parse(codeFile, errors);
+        TEST_ASSERT(module->name == "doyoubi");
+        TEST_ASSERT(module->usings.size() == 2);
+        TEST_ASSERT(module->usings[0]->ToLog() == "Using(std)");
+        TEST_ASSERT(module->usings[1]->ToLog() == "Using(math)");
+        TEST_ASSERT(module->tags.size() == 1);
+        TEST_ASSERT(module->tags.front()->ToLog() == "Tag(mytag)")
+        TEST_ASSERT(module->types.size() == 1);
+        TEST_ASSERT(module->types.front()->ToLog() == "Type(mytype)");
+        TEST_ASSERT(module->functions.size() == 1);
+        TEST_ASSERT(module->functions.front()->ToLog() == "Sentence:print(message){1}");
+    }
+}
+
 void InvokeDeclarationParserTest()
 {
     TestTag();
     TestType();
     TestArgument();
     TestFunctionDeclaration();
+    TestUsing();
+    TestModule();
     std::cout << "Declaration Parser Test Complete" << std::endl;
 }
